@@ -33,15 +33,15 @@ model Transport
 
 	(! objective !)
 
-	MinCost:= sum(p in PLANT, r in REGION | exists(flow(p,r)))
-
+	MinCost :=
+		sum(p in PLANT, r in REGION | exists(flow(p,r)))
+		(FUELCOST * DISTANCE(p,r) + PLANTCOST(p)) * flow(p,r)
 
 	(! constraints !)
 
-	(FUELCOST * DISTANCE(p,r) + PLANTCOST(p)) * flow(p,r) ! Limits on plant capacity
-	forall(p in PLANT) sum(r in REGION) flow(p,r) <= PLANTCAP(p) ! Satisfy all demands
-	forall(r in REGION) sum(p in PLANT) flow(p,r) = DEMAND(r) ! Bounds on flows
-	forall(p in PLANT, r in REGION | exists(flow(p,r)))
+	forall(p in PLANT) sum(r in REGION) flow(p,r) <= PLANTCAP(p) ! Limits on plant capacity
+	forall(r in REGION) sum(p in PLANT) flow(p,r) = DEMAND(r) ! Satisfy all demands
+	forall(p in PLANT, r in REGION | exists(flow(p,r))) ! Bounds on flows
 	flow(p,r) <= TRANSCAP(p,r)
 
 

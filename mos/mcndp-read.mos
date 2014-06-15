@@ -1,4 +1,4 @@
-model "mcndp"
+model "mcndp-read"
 	uses "mmxprs"
 
 	(! parameters !)
@@ -12,8 +12,8 @@ model "mcndp"
 
 	declarations
 
-		_j, _i, _f, _u, _n : integer         ! temporary variables
-		_k, _c, _b, _d, _m: integer
+		j, i, f, u, n : integer              ! temporary variables
+		k, c, b, d, m: integer
 
 		N, M, K : integer                    ! instance size variables
 		Nr, Kr : range                       ! instance size ranges
@@ -47,99 +47,44 @@ model "mcndp"
 		finalize(Nr)                                ! finalize array size
 		finalize(Kr)                                ! idem
 
-		_m := M                                     ! init edge counter
+		m := M                                      ! init edge counter
 
 		repeat                                      ! for each edge
 			fskipline("\n")                             ! skip blank lines
-			readln(_j, _i, _f, _u, _n)                  ! read j, i, f_{i,j}, u_{i,j}, n
-			F(_i, _j) := _f
-			U(_i, _j) := _u
-			create(Y(_i, _j))
-			writeln(_j, " ", _i, " ", _f, " ", _u, " ", _n)
+			readln(j, i, f, u, n)                       ! read j, i, f_{i,j}, u_{i,j}, n
+			F(i, j) := f
+			U(i, j) := u
+			create(Y(i, j))
+			writeln(j, " ", i, " ", f, " ", u, " ", n)
 
 			repeat                                      ! for each product
 				fskipline("\n")                             ! skip blank lines
-				readln(_k, _c, _b)                          ! read k, c^k_{i,j}, b^k_{i,j}
-				C(_k, _i, _j) := _c
-				B(_k, _i, _j) := _b
-				create(X(_k, _i, _j))
-				writeln(_k, " ", _c, " ", _b)
-				_n -= 1
-			until _n = 0
+				readln(k, c, b)                             ! read k, c^k_{i,j}, b^k_{i,j}
+				C(k, i, j) := c
+				B(k, i, j) := b
+				create(X(k, i, j))
+				writeln(k, " ", c, " ", b)
+				n -= 1
+			until n = 0
 
-			_m -= 1
-		until _m = 0
+			m -= 1
+		until m = 0
 
 		repeat                                      ! for each supply / demand constraint
 			fskipline("\n")                             ! skip blank lines
-			readln(_k, _i, _d)                          ! read k, i, d^k_i
+			readln(k, i, d)                             ! read k, i, d^k_i
 
 			if getparam("nbread") = 0 then break        ! EOF
 			end-if
 
-			D(_k, _i) := _d
-			writeln(_k, " ", _i, " ", _d)
+			D(k, i) := d
+			writeln(k, " ", i, " ", d)
 		until 1 = 0
 
 
 	fclose(F_INPUT)
 
 
-	(! objective !)
-
-	TotalCost :=
-		sum (i in Nr, j in Nr | exists(Y(i, j))) (F(i, j) * Y(i, j)) +
-		sum (i in Nr, j in Nr, k in Kr | exists(Y(i, j))) (C(k, i, j) * X(k, i, j))
-
-
-	(! constraints !)
-
-	! Flows
-
-		forall (i in Nr, k in Kr)
-		sum (j in Nr | exists(Y(i, j))) (X(k, i, j)) -
-		sum (j in Nr | exists(Y(j, i))) (X(k, j, i)) =
-		D(k, i)
-
-
-	! Capacity
-
-		forall (i in Nr, j in Nr | exists(Y(i, j)))
-		sum (k in Kr) X(k, i, j) <= U(i, j) * Y(i, j)
-
-
-	! Bound
-
-		forall (i in Nr, j in Nr, k in Kr | exists(Y(i, j)))
-		X(k, i, j) <= B(k, i, j) * Y(i, j)
-
-
-	! Quantities
-
-		forall (i in Nr, j in Nr, k in Kr | exists(Y(i, j)))
-		X(k, i, j) >= 0
-
-
-	! Open
-
-		forall (i in Nr, j in Nr | exists(Y(i, j)))
-		Y(i, j) is_binary
-
-
-	(! print problem !)
-
-	! exportprob(0, "", TotalCost)
-
-
-	(! solve !)
-
-	minimize(TotalCost)
-
-	
-	(! output !)
-
-	writeln("Solution:")
-	writeln(" total cost : ", getobjval)
 
 
 end-model
