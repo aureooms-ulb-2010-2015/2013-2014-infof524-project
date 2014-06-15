@@ -1,0 +1,24 @@
+model doesx
+
+	declarations
+		IR    = 1..15
+		WHICH : set of integer
+		x     : dynamic array(IR) of mpvar
+	end-declarations
+
+	(! data !)
+	initializations from 'test/data/doesx.dat'
+		WHICH
+	end-initializations
+
+	(! Create the x variables that exist !)
+	forall(i in WHICH) create(x(i))
+
+	(! Build a little model to show what exists !)
+	Obj := sum(i in IR) x(i)
+	C   := sum(i in IR) i * x(i) >= 5
+
+	(! output !)
+	exportprob(0, "", Obj)
+
+end-model

@@ -1,0 +1,23 @@
+model doesx2
+
+	declarations
+		WHICH : set of integer
+	end-declarations
+
+	initializations from 'test/data/doesx.dat'
+		WHICH
+	end-initializations
+
+	finalize(WHICH)
+
+	declarations
+		x: array(WHICH) of mpvar
+		! Here the array is _not_ dynamic because the set has been finalized
+	end-declarations
+	
+	Obj := sum(i in WHICH) x(i)
+	C   := sum(i in WHICH) i * x(i) >= 5
+
+	exportprob(0, "", Obj)
+
+end-model
