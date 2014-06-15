@@ -1,3 +1,2 @@
 #!/bin/sh
-
-mosel -s -c "exec $@"
+mosel -s -c "exec $*"

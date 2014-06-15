@@ -1,0 +1,59 @@
+model "Blend"
+	uses "mmxprs"
+
+	(! parameters !)
+
+	parameters
+		DATAFILE = "test/data/blend.dat"
+	end-parameters
+
+
+	(! variables !)
+
+	declarations
+		REV      = 125                    ! Unit revenue of product
+		MINGRADE = 4                      ! Minimum permitted grade of product
+		MAXGRADE = 5                      ! Maximum permitted grade of product
+		ORES     = 1..2                   ! Range of ores
+
+		COST     : array(ORES) of real    ! Unit cost of ores
+		AVAIL    : array(ORES) of real    ! Availability of ores
+		GRADE    : array(ORES) of real    ! Grade of ores (measured per unit of mass)
+
+		use      : array(ORES) of mpvar   ! Quantities of ores used
+	end-declarations
+
+
+
+	(! data !)
+	
+	initializations from DATAFILE
+		AVAIL COST GRADE
+	end-initializations
+
+
+	(! objective !)
+
+	Profit := sum(o in ORES) (REV-COST(o)) * use(o)
+
+
+	(! constraints !)
+	
+	sum(o in ORES) (GRADE(o) - MINGRADE) * use(o) >= 0
+	sum(o in ORES) (MAXGRADE - GRADE(o)) * use(o) >= 0
+	forall(o in ORES) use(o) <= AVAIL(o)
+
+
+	(! solve !)
+
+	maximize(Profit)
+
+	
+	(! output !)
+
+	writeln("Solution:")
+	writeln(" profit: ", getobjval)
+	forall(o in ORES) writeln(" use(" + o + "): ", getsol(use(o)))
+
+
+end-model
