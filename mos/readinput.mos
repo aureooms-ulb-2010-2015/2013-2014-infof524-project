@@ -1,0 +1,61 @@
+model readinput
+	uses "mmxprs"
+
+	(! parameters !)
+
+	parameters
+		DATA = ""
+	end-parameters
+
+
+	(! variables !)
+
+	declarations
+		N, M, K, j, i, f, b, n, k, c, u, d, x, y, z: integer
+	end-declarations
+
+
+	(! data !)
+
+	fopen(DATA, F_INPUT)
+
+		fskipline("\n")
+		readln(N, M, K)
+		writeln(N, " ", M, " ", K)
+
+		x := M
+
+		repeat
+			fskipline("\n")
+			readln(j, i, f, b, n)
+			writeln(j, " ", i, " ", f, " ", b, " ", n)
+
+			repeat
+				fskipline("\n")
+				readln(k, c, u)
+				writeln(k, " ", c, " ", u)
+				n -= 1
+			until n = 0
+
+			x -= 1
+		until x = 0
+
+		repeat
+			fskipline("\n")
+			readln(k, i, d)
+			
+			if getparam("nbread") = 0 then break
+			end-if
+
+			writeln(k, " ", i, " ", d)
+		until 1 = 0
+
+
+	fclose(F_INPUT)
+
+
+	(! output !)
+
+
+
+end-model
