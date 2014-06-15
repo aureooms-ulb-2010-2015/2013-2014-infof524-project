@@ -1,0 +1,49 @@
+model "Burglar (index set 2)"
+	uses "mmxprs"
+
+
+	(! variables !)
+
+	declarations
+		WTMAX = 102                   ! Maximum weight allowed
+		ITEMS = {"camera", "necklace",
+		"vase", "picture", "tv",
+		"video", "chest", "brick"}    ! Index range for items
+		VALUE: array(ITEMS) of real   ! Value of items
+		WEIGHT: array(ITEMS) of real  ! Weight of items
+		take: array(ITEMS) of mpvar   ! 1 if we take item i; 0 otherwise
+	end-declarations
+
+
+	(! data !)
+
+	VALUE  :: (["camera", "necklace", "vase", "picture", "tv", "video", "chest", "brick"])
+	           [      15,        100,     90,        60,   40,      15,      10,       1]
+	WEIGHT :: (["camera", "necklace", "vase", "picture", "tv", "video", "chest", "brick"])
+	           [       2,         20,     20,        30,   40,      30,      60,      10]
+
+
+	(! objective !)
+
+	MaxVal:= sum(i in ITEMS) VALUE(i) * take(i)
+
+
+	(! constraints !)
+	
+	sum(i in ITEMS) WEIGHT(i) * take(i) <= WTMAX        ! Weight restriction
+
+	forall(i in ITEMS) take(i) is_binary                ! All variables are 0/1
+
+
+	(! solve !)
+
+	maximize(MaxVal)
+
+
+	(! output !)
+
+	writeln("Solution:")
+	writeln(" profit : ", getobjval)
+	forall(i in ITEMS) writeln(" take(", i, "): ", getsol(take(i)))
+
+end-model
