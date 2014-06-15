@@ -1,0 +1,41 @@
+DEMAND: [
+	(Scotland)  2840
+	(North)     2800
+	(SWest)     2600
+	(SEast)     2820
+	(Midlands)  2750
+]
+
+
+			!          [ CAP COST]
+PLANTDATA: [ 
+			(Corby)    [3000 1700]
+			(Deeside)  [2700 1600]
+			(Glasgow)  [4500 2000]
+			(Oxford)   [4000 2100]
+]
+
+			!                   [DIST  CAP]
+ROUTES: [
+			(Corby North)       [ 400 1000]
+			(Corby SWest)       [ 400 1000]
+			(Corby SEast)       [ 300 1000]
+			(Corby Midlands)    [ 100 2000]
+			(Deeside Scotland)  [ 500 1000]
+			(Deeside North)     [ 200 2000]
+			(Deeside SWest)     [ 200 1000]
+			(Deeside SEast)     [ 200 1000]
+			(Deeside Midlands)  [ 400  300]
+			(Glasgow Scotland)  [ 200 3000]
+			(Glasgow North)     [ 400 2000]
+			(Glasgow SWest)     [ 500 1000]
+			(Glasgow SEast)     [ 900  200]
+			(Oxford Scotland)   [ 800    *]
+			(Oxford North)      [ 600 2000]
+			(Oxford SWest)      [ 300 2000]
+			(Oxford SEast)      [ 200 2000]
+			(Oxford Midlands)   [ 400  500]
+]
+
+
+FUELCOST: 17

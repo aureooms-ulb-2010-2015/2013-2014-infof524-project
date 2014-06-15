@@ -1,0 +1,59 @@
+model Transport
+	uses "mmxprs"
+
+
+	(! variables !)
+
+	declarations
+		REGION    : set of string                ! Set of customer regions
+		PLANT     : set of string                ! Set of plants
+		DEMAND    : array(REGION) of real        ! Demand at regions
+		PLANTCAP  : array(PLANT) of real         ! Production capacity at plants
+		PLANTCOST : array(PLANT) of real         ! Unit production cost at plants
+		TRANSCAP  : array(PLANT,REGION) of real  ! Capacity on each route plant --> region
+		DISTANCE  : array(PLANT,REGION) of real  ! Distance of each route plant --> region
+		FUELCOST  : real                         ! Fuel cost per unit distance
+		flow      : array(PLANT,REGION) of mpvar ! Flow on each route
+	end-declarations
+
+	(! data !)
+
+	initializations from 'test/data/transport.dat'
+		DEMAND
+		[PLANTCAP, PLANTCOST] as 'PLANTDATA'
+		[DISTANCE,  TRANSCAP] as 'ROUTES'
+		FUELCOST
+	end-initializations
+
+
+	(! Create the flow variables that exist !)
+
+	forall(p in PLANT, r in REGION | exists(TRANSCAP(p,r)) ) create(flow(p,r))
+
+
+	(! objective !)
+
+	MinCost:= sum(p in PLANT, r in REGION | exists(flow(p,r)))
+
+
+	(! constraints !)
+
+	(FUELCOST * DISTANCE(p,r) + PLANTCOST(p)) * flow(p,r) ! Limits on plant capacity
+	forall(p in PLANT) sum(r in REGION) flow(p,r) <= PLANTCAP(p) ! Satisfy all demands
+	forall(r in REGION) sum(p in PLANT) flow(p,r) = DEMAND(r) ! Bounds on flows
+	forall(p in PLANT, r in REGION | exists(flow(p,r)))
+	flow(p,r) <= TRANSCAP(p,r)
+
+
+	(! solve !)
+
+	minimize(MinCost)
+
+
+	(! output !)
+
+	writeln("Solution:")
+	writeln(" cost : ", getobjval)
+	forall(p in PLANT, r in REGION) writeln(" flow(", p, ", ", r, "): ", getsol(flow(p,r)))
+
+end-model

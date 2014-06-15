@@ -1,5 +1,5 @@
 model "Chess 2"
-	uses "mmxprs"                      ! We shall use Xpress-Optimizer</p>
+	uses "mmxprs"                      ! We shall use Xpress-Optimizer
 
 
 	(! variables !)
