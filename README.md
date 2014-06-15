@@ -32,51 +32,53 @@
 
 # DATA
 
-Les données sont contenues dans des fichiers *.dat* a l’intérieur du dossier *data*.
-Les informations sur les instances sont structurées en trois parties:
+Data are contained in *.dat* files inside the *data* directory.
+Information is splitted in 3 parts:
 
-1. Infos sur la taille de l'instance;
-2. Infos sur les couples source-destination;
-3. Infos sur le demande des produits.
-
-
-## Infos sur la taille de l'instance
-
-La premier ligne contient les infos sur la taille de l'instance. 
-En particulier il y a le valeurs:
-
-- n = nombre des nodes;
-- m = nombre des arcs;
-- \#k = nombre des produit.
+1. Info on the instance size;
+2. Info on source-destination pairs;
+3. Info on product supply/demand.
 
 
-## Infos sur les couples source-destination
+## Info on the instance size
 
-A partir de la deuxième ligne il y a les info sur le couples source-destination. 
-Pour chaque couple  nous avons une première ligne avec les valeurs
+The first line contains all the info on the instance size. 
+You can read the 3 following values:
 
-- j = destination;
-- i = source;
-- f_ij = coûts fixes;
-- b_ij = capacité mutuelle;
-- \#k = nombre des produits. 
-
-Après nous avons un ligne pour chaque produit qui contient les valeurs:
-
-- k = indice du produit; 
-- c_{ij} = coût sur l'arc (i,j);
-- u_{ij} = capacité sur l'arc (i,j).
+- *N* = number of nodes;
+- *M* = number of edges;
+- *K* = number of products.
 
 
-## Infos sur le demande des produits
+## Info on source-destination pairs
 
-Finalement il y a la section sur la demande produit. 
-Pour chaque produit nous avons un ligne qui contient les valeurs:
+Starting from the second line you can read info on source-destination pairs. 
+For each of the *M* couples we have a first line with values.
 
-- k = indice du produit;
-- i = indice du node destination;
-- d^k_i = quantité de produit k demandé par le node i.
+-      *j* = destination;
+-      *i* = source;
+- *f_{ij}* = fixed costs;
+- *u_{ij}* = total capacity;
+-      *k* = number of products. 
+
+After that we have a line for each of the *k* products with values
+
+-        *k* = product index; 
+- *c^k_{ij}* = cost on edge (*i*,*j*) for product *k*;
+- *b^k_{ij}* = bound on edge (*i*,*j*) for product *k*.
 
 
-__Pour mieux comprendre, voir l’exemple *small/small.dat* et *small/small.pdf*.__
+## Info on product supply/demand
+
+Finally there is the section on product supply and demand. 
+For each product we have a line containing values:
+
+-     *k* = product index;
+-     *i* = destination node index;
+- *d^k_i* = amount of product *k* supplied (positive value) or demanded (negative value) by node *i*.
+
+
+__To have a better understanding see example *small/small.dat* and *small/small.pdf*.__
+
+__/!\ Error in *small/small.pdf*, *u* and *b* swapped.__ 
 
