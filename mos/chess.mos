@@ -1,0 +1,15 @@
+model "Chess"
+
+
+	declarations
+		small: mpvar                  ! Number of small chess sets to make
+		large: mpvar                  ! Number of large chess sets to make
+	end-declarations
+
+
+	Profit:= 5*small + 20*large       ! Objective function
+	Lathe:=  3*small + 2*large <= 160 ! Lathe-hours
+	Boxwood:=  small + 3*large <= 200 ! kg of boxwood
+
+
+end-model

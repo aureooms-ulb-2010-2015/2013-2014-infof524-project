@@ -1,9 +1,25 @@
-Les donné sont contenu dans des fichier “.dat” a l’intérieur du dossier “data”.
-Les info sur les instance sont structuré en trois parties:
 
-1. Info sur la taille de l'instance; 
-2. Info sur les couples source-destination;
-3. Info sur le demande des produits.
+
+# INIT MOSEL
+
+	source ./init
+
+
+
+# RUN MODEL
+
+	./solve mos/model_name
+
+
+
+# DATA
+
+Les données sont contenues dans des fichiers *.dat* a l’intérieur du dossier *data*.
+Les informations sur les instances sont structurées en trois parties:
+
+1. Infos sur la taille de l'instance; 
+2. Infos sur les couples source-destination;
+3. Infos sur le demande des produits.
 
 1)
 La premier ligne contient les infos sur la taille de l'instance. 
