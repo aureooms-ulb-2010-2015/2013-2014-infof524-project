@@ -1,0 +1,13 @@
+
+
+
+
+forall(i in Nr, j in Nr | exists(Y(i, j)) and getsol(Y(i, j)) > 0)
+writeln(" Y(", i, ", ", j, "): ", getsol(Y(i, j)))
+
+
+forall(k in Kr, i in Nr, j in Nr | exists(X(k, i, j)) and getsol(X(k, i, j)) > 0)
+writeln(" X(", k, ", ", i, ", ", j, "): ", getsol(X(k, i, j)))
+
+
+writeln(" TotalCost: ", getobjval)

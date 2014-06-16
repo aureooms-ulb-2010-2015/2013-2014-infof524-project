@@ -35,8 +35,8 @@ fopen(DATA, F_INPUT)
 	Nr := 1..N                                  ! assign N range
 	Kr := 1..K                                  ! assign K range
 
-	finalize(Nr)                                ! finalize array size
-	finalize(Kr)                                ! idem
+	! finalize(Nr)                                ! finalize array size
+	! finalize(Kr)                                ! idem
 
 	_m := M                                     ! init edge counter
 
