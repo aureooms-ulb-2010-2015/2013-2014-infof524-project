@@ -1,0 +1,16 @@
+model "mcndp/read"
+	uses "mmxprs"
+
+	(! parameters !)
+
+	parameters
+		DATA = ""                            ! input file name, if "" read from stdin
+	end-parameters
+
+
+	include "mcndp/lib/parse.mos"
+
+
+
+
+end-model

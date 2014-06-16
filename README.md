@@ -14,7 +14,7 @@
 	- *mos*  : test models
 
 - *init*  : quick environment initialization for __mosel__
-- *solve* : shortcut for model execution
+- *run* : shortcut for model execution
 
 
 # USAGE
@@ -26,7 +26,7 @@
 
 ## RUN MODEL
 
-	./solve mos/model_name [params..]
+	./run mos/model_name [params..]
 
 
 
