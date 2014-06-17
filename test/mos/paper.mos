@@ -49,7 +49,7 @@ model Papermill
 	end-do
 
 
-	MinRolls:= sum(j in WIDTHS) use(j) ! Objective: minimize no. of rolls
+	MinRolls := sum(j in WIDTHS) use(j) ! Objective: minimize no. of rolls
 	
 	forall(i in WIDTHS) ! Satisfy all demands
 		Dem(i) := sum(j in WIDTHS) PATTERNS(i,j) * use(j) >= DEMAND(i)
@@ -90,12 +90,12 @@ model Papermill
 			objval := getobjval                               ! Get the objective value
 			forall(j in 1..npatt) soluse(j) := getsol(use(j)) ! Get the solution values
 
-
+			writeln("sol: ", objval, " rolls, ", getsize(RP), " patterns")
 
 			forall (i in WIDTHS) dualdem(i) := getdual(Dem(i))
 			                                                 ! Solve a knapsack Problem
 			zbest:= knapsack(dualdem, WIDTH, MAXWIDTH, DEMAND, xbest, npass) - 1.0
-			write("Pass ", npass, ": ")
+			write("#", npass, ": ")
 			if zbest = 0 then
 				writeln("no profitable column found.\n")
 				break
@@ -111,7 +111,7 @@ model Papermill
 
 				forall(i in WIDTHS)
 					if xbest(i) > 0 then
-						Dem(i)+= xbest(i)*use(npatt)            ! Add new var. to demand constr.s
+						Dem(i) += xbest(i)*use(npatt)           ! Add new var. to demand constr.s
 						dw := maxlist(dw, ceil(DEMAND(i)/xbest(i)))
 					end-if
 
@@ -123,12 +123,13 @@ model Papermill
 
 			end-if
 			npass += 1
+
+			writeln("")
 		end-do
 
 		
 		
-		writeln("Solution after column generation: ", objval, " rolls, ",
-		getsize(RP), " patterns")
+		writeln("Solution after column generation: ", objval, " rolls, ", getsize(RP), " patterns")
 		write("    Rolls per pattern: ")
 		forall(i in RP) write(soluse(i),", ")
 		writeln
@@ -186,14 +187,14 @@ model Papermill
 		end-declarations
 
 		writeln("new pattern found with marginal cost ", dj)
-		write("    Widths distribution: ")
+		write("pattern > ")
 		dw := 0
 		forall(i in WIDTHS) do
-			write(WIDTH(i), ":", vx(i), " ")
+			write("(", WIDTH(i), ", ", vx(i), ") ")
 			dw += WIDTH(i)*vx(i)
 		end-do
 
-		writeln("Total width: ", dw)
+		writeln("> ", dw)
 	end-procedure
 
 end-model

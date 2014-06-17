@@ -52,11 +52,6 @@ model "mcndp/raw"
 		Y(i, j) is_binary
 
 
-	(! print problem !)
-
-	! exportprob(0, "", TotalCost)
-
-
 	(! solve !)
 
 	minimize(TotalCost)

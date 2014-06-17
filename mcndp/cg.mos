@@ -3,7 +3,6 @@ model "mcndp/raw"
 
 	(! parameters !)
 
-
 	parameters
 		DATA = ""                            ! input file name, if "" read from stdin
 	end-parameters
@@ -12,34 +11,52 @@ model "mcndp/raw"
 	include "mcndp/lib/parse.mos"
 	include "sp/lib/sp.mos"
 
+	declarations
+		Pr    : range                            ! Path range
+		DELTA : array(Pr, Kr, Nr, Nr) of integer ! Tells if path P contains arc (i,j)
+		FLOW  : array(Pr, Kr) of mpvar           ! Flow decision variables
+	end-declarations
+
+
+	(! generate base !)
+
+	! ...
+
 
 	(! objective !)
 
 	TotalCost :=
 		sum (i in Nr, j in Nr | exists(Y(i, j))) (F(i, j) * Y(i, j)) +
-		sum (i in Nr, j in Nr, k in Kr | exists(X(k, i, j))) (C(k, i, j) * X(k, i, j))
+		sum (i in Nr, j in Nr, k in Kr, p in Pr | exists(X(k, i, j))) (C(k, i, j) * DELTA(p, k, i, j) * FLOW(p, k))
+		
 
 
 	(! constraints !)
 
+	! Link
+
+		forall(i in Nr, j in Nr | exists(Y(i, j)), k in Kr, p in Pr)
+			Y(i,j) = DELTA(p, k, i, j)
+
+		forall(i in Nr, j in Nr, k in Kr | exists(X(k, i, j)), p in Pr)
+			X(k,i,j) = DELTA(p, k, i, j) * FLOW(p, k)
+
 	! Flows
 
-		forall (i in Nr, k in Kr)
-		sum (j in Nr | exists(X(k, i, j))) (X(k, i, j)) -
-		sum (j in Nr | exists(X(k, j, i))) (X(k, j, i)) =
-		D(k, i)
+		forall (k in Kr)
+		sum (p in Pr) FLOW(p, k) = sum(i in Nr) D(k, i)
 
 
 	! Capacity
 
 		forall (i in Nr, j in Nr | exists(Y(i, j)))
-		sum (k in Kr | exists(X(k, i, j))) X(k, i, j) <= U(i, j) * Y(i, j)
+		sum (k in Kr, p in Pr) DELTA(p, k, i, j) * FLOW(p, k) <= U(i,j) * Y(i,j)
 
 
 	! Bound
 
-		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)))
-		X(k, i, j) <= B(k, i, j) * Y(i, j)
+		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)), p in Pr)
+		DELTA(p, k, i, j) * FLOW(p, k) <= B(k,i,j) * Y(i,j)
 
 
 	! Quantities
@@ -52,11 +69,6 @@ model "mcndp/raw"
 
 		forall (i in Nr, j in Nr | exists(Y(i, j)))
 		Y(i, j) is_binary
-
-
-	(! print problem !)
-
-	! exportprob(0, "", TotalCost)
 
 
 	(! solve !)
