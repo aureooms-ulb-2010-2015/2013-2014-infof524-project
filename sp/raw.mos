@@ -1,0 +1,22 @@
+model "sp/raw"
+	uses "mmxprs"
+
+	(! parameters !)
+
+	parameters
+		DATA = ""                            ! input file name, if "" read from stdin
+	end-parameters
+
+
+	include "sp/lib/parse.mos"
+
+	include "sp/lib/sp.mos"
+
+
+
+	_a := sp(C, X, Y, Nr, _s, _t)
+
+	include "sp/lib/output.mos"
+
+
+end-model

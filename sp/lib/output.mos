@@ -1,0 +1,12 @@
+
+writeln(" ")
+writeln(_a, " ", _e)
+
+
+repeat
+	forall(i in Nr, j in Nr | exists(X(i,j)) and Y(i,j) = 1 and i = _s) do
+		writeln(i, " --> ", j, " : ", C(i,j))
+		_s := j
+		
+	end-do
+until _s = _t

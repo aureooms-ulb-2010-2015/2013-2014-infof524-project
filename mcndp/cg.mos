@@ -1,0 +1,72 @@
+model "mcndp/raw"
+	uses "mmxprs"
+
+	(! parameters !)
+
+
+	parameters
+		DATA = ""                            ! input file name, if "" read from stdin
+	end-parameters
+
+
+	include "mcndp/lib/parse.mos"
+	include "sp/lib/sp.mos"
+
+
+	(! objective !)
+
+	TotalCost :=
+		sum (i in Nr, j in Nr | exists(Y(i, j))) (F(i, j) * Y(i, j)) +
+		sum (i in Nr, j in Nr, k in Kr | exists(X(k, i, j))) (C(k, i, j) * X(k, i, j))
+
+
+	(! constraints !)
+
+	! Flows
+
+		forall (i in Nr, k in Kr)
+		sum (j in Nr | exists(X(k, i, j))) (X(k, i, j)) -
+		sum (j in Nr | exists(X(k, j, i))) (X(k, j, i)) =
+		D(k, i)
+
+
+	! Capacity
+
+		forall (i in Nr, j in Nr | exists(Y(i, j)))
+		sum (k in Kr | exists(X(k, i, j))) X(k, i, j) <= U(i, j) * Y(i, j)
+
+
+	! Bound
+
+		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)))
+		X(k, i, j) <= B(k, i, j) * Y(i, j)
+
+
+	! Quantities
+
+		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)))
+		X(k, i, j) >= 0
+
+
+	! Open
+
+		forall (i in Nr, j in Nr | exists(Y(i, j)))
+		Y(i, j) is_binary
+
+
+	(! print problem !)
+
+	! exportprob(0, "", TotalCost)
+
+
+	(! solve !)
+
+	minimize(TotalCost)
+
+	
+	(! output !)
+
+	include "mcndp/lib/output.mos"
+
+
+end-model

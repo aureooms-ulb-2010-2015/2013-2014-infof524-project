@@ -1,0 +1,51 @@
+
+(! variables !)
+
+declarations
+
+	_i, _j, _c, _s, _t, _e, _a : integer         ! temporary variables
+
+	N, M : integer                    ! instance size variables
+	Nr : range                       ! instance size ranges
+
+	C : array(Nr, Nr) of integer         ! fixed cost of edges
+	X : array(Nr, Nr) of mpvar           ! decision 
+	Y : array(Nr, Nr) of integer         ! copy variables for edges
+
+	
+end-declarations
+
+
+(! data !)
+
+fopen(DATA, F_INPUT)
+
+	(! parse instance size !)
+
+	fskipline("\n")                             ! skip blank lines
+	readln(N, M)                            ! read N, M
+	writeln(N, " ", M)
+
+	fskipline("\n")                             ! skip blank lines
+	readln(_s, _t, _e)                            ! read source, target, expected
+	writeln(_s, " ", _t, " ", _e)
+
+	Nr := 1..N                                  ! assign N range
+
+	! finalize(Nr)                                ! finalize array size
+
+	_m := M                                     ! init edge counter
+
+	repeat                                      ! for each edge
+		fskipline("\n")                             ! skip blank lines
+		readln(_i, _j, _c)                  ! read i, j, c_{i,j}
+		C(_i, _j) := _c
+		create(X(_i, _j))
+		writeln(_i, " ", _j, " ", _c)
+
+
+		_m -= 1
+	until _m = 0
+
+
+fclose(F_INPUT)
