@@ -1,10 +1,10 @@
 # DIR TREE
 
-- *data*  : contains instances of the __MCNDP__ problem
-
-- *mos*   : contains mosel models for the __MCNDP__ problem
+- *mcndp* : contains mosel models and data for the __MCNDP__ problem
 
 - *pdf*   : contains the assignment sheet, the __Mosel User Guide__ and papers on the subject of the  __MCNDP__ problem
+
+- *sp*    : contains mosel models and data for the __SP__ problem
 
 - *small* : contains a small instance of the __MCNDP__ problem and its network representation to help understanding the *.dat* file format
 
@@ -26,13 +26,13 @@
 
 ## RUN MODEL
 
-	./run mos/model_name [params..]
+	./run <model_path> [params..]
 
 
 
 # DATA
 
-Data are contained in *.dat* files inside the *data* directory.
+Data is contained in *.dat* files inside the *data* directory (for __MCNDP__ see *mcndp/data*).
 Information is splitted in 3 parts:
 
 1. Info on the instance size;
@@ -78,7 +78,7 @@ For each product we have a line containing values:
 - *d^k_i* = amount of product *k* supplied (positive value) or demanded (negative value) by node *i*.
 
 
-__To have a better understanding see example *small/small.dat* and *small/small.pdf*.__
+__To have a better understanding see example *mcndp/data/small/small.dat* and *mcndp/data/small/small.pdf*.__
 
-__/!\ Error in *small/small.pdf*, *u* and *b* swapped.__ 
+__/!\ Error in *mcndp/data/small/small.pdf*, *u* and *b* swapped.__ 
 
