@@ -1,0 +1,199 @@
+model Papermill
+	uses "mmxprs"
+	
+	forward procedure column_gen
+
+
+	forward function knapsack(
+		    C : array(range) of real,
+		    A : array(range) of real,
+		    B : real,
+		    D : array(range) of integer,
+		xbest : array(range) of integer,
+		 pass : integer) : real
+
+	forward procedure show_new_pat(dj:real, vx: array(range) of integer)
+
+	declarations
+
+		NWIDTHS = 5         ! Number of different widths
+		WIDTHS = 1..NWIDTHS ! Range of widths
+		RP: range           ! Range of cutting patterns
+		MAXWIDTH = 94       ! Maximum roll width
+		EPS = 1e-6          ! Zero tolerance
+
+		WIDTH: array(WIDTHS) of real              ! Possible widths
+		DEMAND: array(WIDTHS) of integer          ! Demand per width
+		PATTERNS: array(WIDTHS,WIDTHS) of integer ! (Basic) cutting patterns
+
+		use: dynamic array(RP) of mpvar   ! Rolls per pattern
+		soluse: dynamic array(RP) of real ! Solution values for variables 'use'
+		Dem: array(WIDTHS) of linctr      ! Demand constraints
+		MinRolls: linctr                  ! Objective function
+
+		KnapCtr, KnapObj: linctr  ! Knapsack constraint+objective
+		x: array(WIDTHS) of mpvar ! Knapsack variables
+
+	end-declarations
+
+	WIDTH  :: [ 17, 21, 22.5,  24, 29.5]
+	DEMAND :: [150, 96,   48, 108,  227]
+
+	forall(j in WIDTHS)                                              ! Make basic patterns
+		PATTERNS(j,j) := minlist(floor(MAXWIDTH/WIDTH(j)),DEMAND(j))
+
+	forall(j in WIDTHS) do
+		create(use(j))      ! Create NWIDTHS variables 'use'
+		use(j) is_integer   ! Variables are integer and bounded
+		use(j) <= integer(ceil(DEMAND(j)/PATTERNS(j,j)))
+	end-do
+
+
+	MinRolls:= sum(j in WIDTHS) use(j) ! Objective: minimize no. of rolls
+	
+	forall(i in WIDTHS) ! Satisfy all demands
+		Dem(i) := sum(j in WIDTHS) PATTERNS(i,j) * use(j) >= DEMAND(i)
+
+	column_gen ! Column generation at top node
+
+	minimize(MinRolls) ! Compute the best integer solution
+	                   ! for the current problem (including
+	                   ! the new columns)
+
+	writeln("Best integer solution: ", getobjval, " rolls")
+	write("    Rolls per pattern: ")
+	forall(i in RP) write(getsol(use(i)), ", ")
+
+	writeln("")
+	writeln("end")
+
+
+	procedure column_gen
+		declarations
+			dualdem: array(WIDTHS) of real
+			xbest: array(WIDTHS) of integer
+			dw, zbest, objval: real
+			bas: basis
+		end-declarations
+
+		defcut := getparam("XPRS_CUTSTRATEGY") ! Save setting of ‘CUTSTRATEGY’
+		setparam("XPRS_CUTSTRATEGY", 0)        ! Disable automatic cuts
+		setparam("XPRS_PRESOLVE", 0)           ! Switch presolve off
+		setparam("zerotol", EPS)               ! Set comparison tolerance of Mosel
+
+		npatt := NWIDTHS
+		npass := 1
+
+		while(true) do
+			minimize(XPRS_LIN, MinRolls)                      ! Solve the LP
+			savebasis(bas)                                    ! Save the current basis
+			objval := getobjval                               ! Get the objective value
+			forall(j in 1..npatt) soluse(j) := getsol(use(j)) ! Get the solution values
+
+
+
+			forall (i in WIDTHS) dualdem(i) := getdual(Dem(i))
+			                                                 ! Solve a knapsack Problem
+			zbest:= knapsack(dualdem, WIDTH, MAXWIDTH, DEMAND, xbest, npass) - 1.0
+			write("Pass ", npass, ": ")
+			if zbest = 0 then
+				writeln("no profitable column found.\n")
+				break
+			else
+				show_new_pat(zbest, xbest) ! Print the new pattern
+				npatt += 1
+				create(use(npatt))         ! Create a new var. for this pattern
+				use(npatt) is_integer
+
+				MinRolls += use(npatt)     ! Add new var. to the objective
+				
+				dw := 0
+
+				forall(i in WIDTHS)
+					if xbest(i) > 0 then
+						Dem(i)+= xbest(i)*use(npatt)            ! Add new var. to demand constr.s
+						dw := maxlist(dw, ceil(DEMAND(i)/xbest(i)))
+					end-if
+
+				use(npatt) <= dw                 ! Set upper bound on the new var.
+				
+
+				loadprob(MinRolls)               ! Reload the problem
+				loadbasis(bas)                   ! Load the saved basis
+
+			end-if
+			npass += 1
+		end-do
+
+		
+		
+		writeln("Solution after column generation: ", objval, " rolls, ",
+		getsize(RP), " patterns")
+		write("    Rolls per pattern: ")
+		forall(i in RP) write(soluse(i),", ")
+		writeln
+		setparam("XPRS_CUTSTRATEGY", defcut) ! Enable automatic cuts
+		setparam("XPRS_PRESOLVE", 1)         ! Switch presolve on
+			
+			
+	end-procedure
+
+
+
+	function knapsack(
+		    C : array(range) of real,
+		    A : array(range) of real,
+		    B : real,
+		    D : array(range) of integer,
+		xbest : array(range) of integer,
+		 pass : integer) : real
+
+
+		! Hide the demand constraints
+
+		forall(j in WIDTHS) sethidden(Dem(j), true)
+
+
+		! Define the knapsack problem
+
+		KnapCtr := sum(j in WIDTHS) A(j)*x(j) <= B
+		KnapObj := sum(j in WIDTHS) C(j)*x(j)
+
+
+		! Integrality condition
+		if(pass=1) then
+			forall(j in WIDTHS) x(j) is_integer
+			forall(j in WIDTHS) x(j) <= D(j)
+		end-if
+
+		maximize(KnapObj)
+		returned := getobjval
+		forall(j in WIDTHS) xbest(j) := round(getsol(x(j)))
+
+
+		! Reset knapsack constraint and objective, unhide demand constraints
+
+		KnapCtr := 0
+		KnapObj := 0
+		forall(j in WIDTHS) sethidden(Dem(j), false)
+
+
+	end-function
+
+	procedure show_new_pat(dj:real, vx: array(range) of integer)
+		declarations
+			dw: real
+		end-declarations
+
+		writeln("new pattern found with marginal cost ", dj)
+		write("    Widths distribution: ")
+		dw := 0
+		forall(i in WIDTHS) do
+			write(WIDTH(i), ":", vx(i), " ")
+			dw += WIDTH(i)*vx(i)
+		end-do
+
+		writeln("Total width: ", dw)
+	end-procedure
+
+end-model
