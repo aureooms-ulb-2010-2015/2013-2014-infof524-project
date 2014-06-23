@@ -8,26 +8,31 @@ model "mcndp/raw"
 	end-parameters
 
 
-	include "mcndp/lib/parse.mos"
+	include "mcndp/lib/parse-cg.mos"
 	include "sp/lib/sp.mos"
 
 	declarations
+		l     : integer                          ! # of generated paths per product
 		Pr    : range                            ! Path range
-		DELTA : array(Pr, Kr, Nr, Nr) of integer ! Tells if path P contains arc (i,j)
-		FLOW  : array(Pr, Kr) of mpvar           ! Flow decision variables
+		DELTA : array(Kr, Pr, Mr) of integer     ! Tells if path P contains arc _m_
+		FLOW  : array(Kr, Pr) of mpvar           ! Flow decision variables
 	end-declarations
 
+	l  := 1
+	Pr := 1..l
 
 	(! generate base !)
 
-	! ...
-
+		forall(k in Kr) do
+			create(FLOW(k, l))                   ! Create flow variable
+			DELTA(k, l, M + k) := 1              ! Basic paths use dummy arcs
+		end-do
 
 	(! objective !)
 
 	TotalCost :=
-		sum (i in Nr, j in Nr | exists(Y(i, j))) (F(i, j) * Y(i, j)) +
-		sum (i in Nr, j in Nr, k in Kr, p in Pr | exists(X(k, i, j))) (C(k, i, j) * DELTA(p, k, i, j) * FLOW(p, k))
+		sum (m in Mr) (F(m) * Y(m)) +
+		sum (m in Mr, k in Kr, p in Pr | exists(X(k, m))) (C(k, m) * DELTA(k, p, m) * FLOW(k, p))
 		
 
 
@@ -35,40 +40,37 @@ model "mcndp/raw"
 
 	! Link
 
-		forall(i in Nr, j in Nr | exists(Y(i, j)), k in Kr, p in Pr)
-			Y(i,j) = DELTA(p, k, i, j)
-
-		forall(i in Nr, j in Nr, k in Kr | exists(X(k, i, j)), p in Pr)
-			X(k,i,j) = DELTA(p, k, i, j) * FLOW(p, k)
+		forall(m in Mr, k in Kr | exists(X(k, m)), p in Pr)
+			X(k, m) = DELTA(k, p, m) * FLOW(k, p)
 
 	! Flows
 
 		forall (k in Kr)
-		sum (p in Pr) FLOW(p, k) = sum(i in Nr) D(k, i)
+		sum (p in Pr) FLOW(k, p) = D(k)
 
 
 	! Capacity
 
-		forall (i in Nr, j in Nr | exists(Y(i, j)))
-		sum (k in Kr, p in Pr) DELTA(p, k, i, j) * FLOW(p, k) <= U(i,j) * Y(i,j)
+		forall (m in Mr)
+		sum (k in Kr, p in Pr) DELTA(k, p, m) * FLOW(k, p) <= U(m) * Y(m)
 
 
 	! Bound
 
-		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)), p in Pr)
-		DELTA(p, k, i, j) * FLOW(p, k) <= B(k,i,j) * Y(i,j)
+		forall (m in Mr, k in Kr | exists(X(k, m)), p in Pr)
+		DELTA(k, p, m) * FLOW(k, p) <= B(k, m) * Y(m)
 
 
 	! Quantities
 
-		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)))
-		X(k, i, j) >= 0
+		forall (m in Mr, k in Kr | exists(X(k, m)))
+		X(k, m) >= 0
 
 
 	! Open
 
-		forall (i in Nr, j in Nr | exists(Y(i, j)))
-		Y(i, j) is_binary
+		forall (m in Mr | exists(Y(m)))
+		Y(m) is_binary
 
 
 	(! solve !)
@@ -78,7 +80,7 @@ model "mcndp/raw"
 	
 	(! output !)
 
-	include "mcndp/lib/output.mos"
+	include "mcndp/lib/output-cg.mos"
 
 
 end-model

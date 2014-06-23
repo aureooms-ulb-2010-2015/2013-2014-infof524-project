@@ -1,0 +1,13 @@
+
+
+
+
+forall(m in Mr | getsol(Y(m)) > 0)
+writeln(" Y(", m, "): ", getsol(Y(m)))
+
+
+forall(k in Kr, m in Mr | exists(X(k, m)) and getsol(X(k, m)) > 0)
+writeln(" X(", k, ", ", m, "): ", getsol(X(k, m)))
+
+
+writeln(" TotalCost: ", getobjval)
