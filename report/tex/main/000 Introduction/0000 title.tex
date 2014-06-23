@@ -1,2 +1,46 @@
 \newpage\cleardoublepage\phantomsection
 \section{Introduction}
+Models for network conception appear in a lot of applications like telecommunication, transports and logistic. Those models are often defined via a graph with capacity on its edges. The aim will be to send a flow on this network in order to satisfy the multiples demands.There will be a cost for the opening of an edge and a cost for each unity sent through each edge. This problem is generally called Fixed-Charge Multi-Commodity Capacitated Network Design Problem, and is known to be quite difficult.
+
+\section{Formulation}
+Given a directed graph $G=(N,A)$ and a set of products $K$ for which a demand from an origin to a destination must be sent via the network, the aim will be to minimize the cost of transport and installation. For each arc $(i,j) \in A$, the cost per unity for the transport of the porduct $k$ will be $c^k_{ij}$ and the cost for the installation of the arc is noted $f_{ij}$. All costs are supposed positives. For a product $k$, a demande $d^k$ positive has to be transported between the origin $O(k)$ and the destination $D(k)$. Each arc $(i,j) \in A$ has a capacity $u_{ij}$ and we define a maximum bound $b^k_{ij}=min\{d^k,u_{ij}\}$ on the quantity of product $k$ over the arc $(i,j)$. For each node $i \in N$ we define the sets $N^+_i=\{j\in N|(i,j)\in A\}$ and $N^-_i=\{j\in N|(j,i)\in A\}$. We use the variables $x^k_{ij}$ to find the value of each product $k$ that go through the edge $(i,j)$ and the variables $y_{ij}$ to decide if whether the edge is opened or not. The MCNDP consists in activating arcs and deciding which quantity of each product we must send through those arcs such that all demands are satisfied and the total cost is minimized.
+
+\section{Change of variable}
+In order to use the column generating process, we will change the variable $x^k_{ij}$ over each edge for new variable $f(P)$ indicating which quantity of a product is going through a certain path $P$. Also we will define the cost per unity of a path $c^k (P)$ as the sum of the cost per unity for each edge in this path, but we will keep the deciding variables $y_{ij}$ to say if an edge is opened or not. We write then :
+
+$x^k_{ij} = \sum\limits_{P \in \mathcal{P}^k} \delta_{ij} (P) f(P)$
+
+$c^k (P) = \sum\limits_{(i,j) \in A} c^k_{ij} \delta_{ij} (P)$
+
+
+\section{Column generation}
+
+\subsection{Initial base}
+The idea of the generating process is to restrain the search of a solution over a subset of variable, keeping the other at zero. Then adding new variables iteratively if those new variables can help us to get a better solution. We need to start with a first set of path that can satisfy the condition, and we will add new path in order to find new solution with lower cost. For each product $k \in K$ we will create a fake edge going from the origin to the destination. This edge will be the first path that can satisfy the condition. We will give it a opening cost equal to the sum of all the opening cost of the graph, and a cost per unity equal to the sum of all the cost per unity over the graph. In such a way we are certain that using those path will be a problem if we want to minimize the cost. Indeed those cost will be higher than the cost of the worst path in the graph for each product.
+
+\subsection{Generating process}
+
+Now that we have a base on which we can solve the problem, we can extract from this solution the dual variables and then compute the reduced cost of each edge. Where $w_{ij}$ is the dual variable corresponding to the constraint of total capacity, and $v^k_{ij}$ is the dual variable corresponding to the constraint of capacity for each product.
+
+ $\gamma^k_{ij}=c^k_{ij}-w_{ij}-v^k_{ij}$
+
+With those reduced cost we can search for the shortest path for each product $k$ and check if at least one of them is stricly smaller than the dual variable linked to the constraint of the correspondant product $k$. If so, then we can find a better a solution by 
+
+\subsection{Termination criterion}
+
+\section{Integer solution}
+
+\section{Comparisons}
+\section{Additionnal remarks}
+
+
+
+
+
+
+
+
+
+Rmq contrainte bkij
+
+Rmq si on utilise ij et pas un seul indice on ne peut pas résoudre si le graphe n'est pas simple
