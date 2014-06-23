@@ -43,7 +43,7 @@ model "mcndp/raw"
 	! Quantities
 
 		forall (i in Nr, j in Nr, k in Kr | exists(X(k, i, j)))
-		X(k, i, j) >= 0
+		X(k, i, j) is_integer
 
 
 	! Open
