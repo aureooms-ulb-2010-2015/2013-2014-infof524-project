@@ -8,6 +8,11 @@ model "mcndp/raw"
 	end-parameters
 
 
+	(! forward !)
+
+	forward procedure column_gen
+
+
 	include "mcndp/lib/parse-cg.mos"
 	include "sp/lib/sp.mos"
 
@@ -16,17 +21,25 @@ model "mcndp/raw"
 		Pr    : range                            ! Path range
 		DELTA : array(Kr, Pr, Mr) of integer     ! Tells if path P contains arc _m_
 		FLOW  : array(Kr, Pr) of mpvar           ! Flow decision variables
+		EPS   = 1e-6                             ! Zero tolerance
+
+		solFlow   : array(Kr, Pr) of real        ! Solution values for variables 'FLOW'
+		Flow      : array(Kr) of linctr          ! Flow constraints
+		Capacity  : array(Mr) of linctr          ! Capacity constraints
+		Bound     : array(Kr, Mr) of linctr      ! Bound constraints
+		TotalCost : linctr                       ! Objective function
 	end-declarations
 
 	l  := 1
 	Pr := 1..l
 
-	(! generate base !)
+	(! generate basis !)
 
 		forall(k in Kr) do
 			create(FLOW(k, l))                   ! Create flow variable
-			DELTA(k, l, M + k) := 1              ! Basic paths use dummy arcs
+			DELTA(k, l, M + k) := 1              ! Basic paths only use dummy arcs
 		end-do
+
 
 	(! objective !)
 
@@ -35,30 +48,30 @@ model "mcndp/raw"
 		sum (m in Mr, k in Kr, p in Pr | exists(X(k, m))) (C(k, m) * DELTA(k, p, m) * FLOW(k, p))
 		
 
-
 	(! constraints !)
 
 	! Link
 
 		forall(m in Mr, k in Kr | exists(X(k, m)), p in Pr)
-			X(k, m) = DELTA(k, p, m) * FLOW(k, p)
+		X(k, m) = DELTA(k, p, m) * FLOW(k, p)
+
 
 	! Flows
 
 		forall (k in Kr)
-		sum (p in Pr) FLOW(k, p) = D(k)
+		Flow(k) := sum (p in Pr) FLOW(k, p) = D(k)
 
 
 	! Capacity
 
 		forall (m in Mr)
-		sum (k in Kr, p in Pr) DELTA(k, p, m) * FLOW(k, p) <= U(m) * Y(m)
+		Capacity(m) := sum (k in Kr, p in Pr) DELTA(k, p, m) * FLOW(k, p) <= U(m) * Y(m)
 
 
 	! Bound
 
-		forall (m in Mr, k in Kr | exists(X(k, m)), p in Pr)
-		DELTA(k, p, m) * FLOW(k, p) <= B(k, m) * Y(m)
+		forall (m in Mr, k in Kr | exists(X(k, m)))
+		Bound(k, m) := sum(p in Pr) DELTA(k, p, m) * FLOW(k, p) <= B(k, m) * Y(m)
 
 
 	! Quantities
@@ -75,12 +88,88 @@ model "mcndp/raw"
 
 	(! solve !)
 
-	minimize(TotalCost)
+		column_gen
+
+
 
 	
 	(! output !)
 
 	include "mcndp/lib/output-cg.mos"
 
+
+
+	(! method !)
+
+	procedure column_gen
+
+ 		declarations
+ 			!dualdem           : array(WIDTHS) of real
+ 			!xbest             : array(WIDTHS) of integer
+ 			dw, zbest, objval : real
+ 			bas               : basis
+ 		end-declarations
+
+
+ 		defcut := getparam("XPRS_CUTSTRATEGY") ! Save setting of ‘CUTSTRATEGY’
+ 		setparam("XPRS_CUTSTRATEGY", 0)        ! Disable automatic cuts
+ 		setparam("XPRS_PRESOLVE", 0)           ! Switch presolve off
+ 		setparam("zerotol", EPS)               ! Set comparison tolerance of Mosel
+! 
+! 		npatt := NWIDTHS
+! 		npass := 1
+! 
+ 		!while(true) do
+			minimize(XPRS_LIN, TotalCost)
+ 			savebasis(bas)                                               ! Save the current basis
+ 			objval := getobjval                                          ! Get the objective value
+ 			forall(k in Kr, p in Pr) solFlow(k, p) := getsol(FLOW(k, p)) ! Get the solution values
+! 
+! 			writeln("sol: ", objval, " rolls, ", getsize(RP), " patterns")
+! 
+! 			forall (i in WIDTHS) dualdem(i) := getdual(Dem(i))
+! 			                                                 ! Solve a knapsack Problem
+! 			zbest:= knapsack(dualdem, WIDTH, MAXWIDTH, DEMAND, xbest, npass) - 1.0
+! 			write("#", npass, ": ")
+! 			if zbest = 0 then
+! 				writeln("no profitable column found.\n")
+! 				break
+! 			else
+! 				show_new_pat(zbest, xbest) ! Print the new pattern
+! 				npatt += 1
+! 				create(use(npatt))         ! Create a new var. for this pattern
+! 				use(npatt) is_integer
+! 
+! 				MinRolls += use(npatt)     ! Add new var. to the objective
+! 
+! 				dw := 0
+! 
+! 				forall(i in WIDTHS)
+! 					if xbest(i) > 0 then
+! 						Dem(i) += xbest(i)*use(npatt)           ! Add new var. to demand constr.s
+! 						dw := maxlist(dw, ceil(DEMAND(i)/xbest(i)))
+! 					end-if
+! 
+! 				use(npatt) <= dw                 ! Set upper bound on the new var.
+! 
+! 
+! 				loadprob(MinRolls)               ! Reload the problem
+! 				loadbasis(bas)                   ! Load the saved basis
+! 
+! 			end-if
+! 			npass += 1
+! 
+! 			writeln("")
+		!end-do
+
+!		writeln("Solution after column generation: ", objval, " rolls, ", getsize(RP), " patterns")
+!		write("    Rolls per pattern: ")
+!		forall(i in RP) write(soluse(i),", ")
+!		writeln
+		setparam("XPRS_CUTSTRATEGY", defcut) ! Enable automatic cuts
+		setparam("XPRS_PRESOLVE", 1)         ! Switch presolve on
+			
+			
+	end-procedure
 
 end-model
