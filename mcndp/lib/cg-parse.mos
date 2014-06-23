@@ -48,6 +48,7 @@ fopen(DATA, F_INPUT)
 	! /!\ left in comments because seemed to add variables
 	!     without constraints
 	! finalize(Nr)                                ! finalize array size
+	! finalize(Wr)                                ! idem
 	! finalize(Mr)                                ! idem
 	! finalize(Kr)                                ! idem
 

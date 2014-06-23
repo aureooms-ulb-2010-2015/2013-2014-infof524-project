@@ -1,7 +1,53 @@
 declarations
-	ShortestPath : mpproblem
-
+	SPKr : range
+	ShortestPath : array(SPKr) of mpproblem
 end-declarations
+
+procedure initsp (
+	C : array(range, range, range) of real,
+	X : array(range, range, range) of mpvar,
+	Y : array(range, range, range) of integer,
+	Nr: range,
+	S : array(range) of integer,
+	T : array(range) of integer,
+	Kr : range)
+
+
+	SPKr := Kr
+
+	finalize(SPKr)
+
+	forall (k in SPKr) do
+		with ShortestPath(k) do
+
+			
+			(! constraints !)
+
+			! Flow
+
+				forall(i in Nr | i <> S(k) and i <> T(k))
+				sum ( j in Nr | exists(X(k,i,j)) ) X(k,i,j) -
+				sum ( j in Nr | exists(X(k,j,i)) ) X(k,j,i) =
+				0
+
+				sum ( j in Nr | exists(X(k,S(k),j)) ) X(k,S(k),j) -
+				sum ( j in Nr | exists(X(k,j,S(k))) ) X(k,j,S(k)) =
+				1
+
+				sum ( j in Nr | exists(X(k,T(k),j)) ) X(k,T(k),j) -
+				sum ( j in Nr | exists(X(k,j,T(k))) ) X(k,j,T(k)) =
+				-1
+
+
+			! Choice
+
+				forall (i in Nr, j in Nr | exists(X(k,i,j)))
+				X(k,i,j) is_binary
+
+		end-do
+	end-do
+
+end-procedure
 
 function sp (
 	C : array(range, range, range) of real,
@@ -13,38 +59,12 @@ function sp (
 	k : integer) : real
 
 
-	with ShortestPath do
-
+	with ShortestPath(k) do
 
 		(! objective !)
 			Distance := 
 			sum ( i in Nr, j in Nr | exists(X(k,i,j)) )
 			C(k,i,j) * X(k,i,j)
-		
-		(! constraints !)
-
-		! Flow
-
-			forall(i in Nr | i <> s and i <> t)
-			sum ( j in Nr | exists(X(k,i,j)) ) X(k,i,j) -
-			sum ( j in Nr | exists(X(k,j,i)) ) X(k,j,i) =
-			0
-
-			sum ( j in Nr | exists(X(k,s,j)) ) X(k,s,j) -
-			sum ( j in Nr | exists(X(k,j,s)) ) X(k,j,s) =
-			1
-
-			sum ( j in Nr | exists(X(k,t,j)) ) X(k,t,j) -
-			sum ( j in Nr | exists(X(k,j,t)) ) X(k,j,t) =
-			-1
-
-
-		! Choice
-
-			forall (i in Nr, j in Nr | exists(X(k,i,j)))
-			X(k,i,j) is_binary
-
-
 
 		(! solve !)
 
