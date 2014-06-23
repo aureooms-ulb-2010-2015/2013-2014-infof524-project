@@ -2,6 +2,9 @@
 
 - *mcndp* : contains mosel models and data for the __MCNDP__ problem
 
+	- *cg*  : column generation approach
+	- *raw* : raw approach
+
 - *pdf*   : contains the assignment sheet, the __Mosel User Guide__ and papers on the subject of the  __MCNDP__ problem
 
 - *sp*    : contains mosel models and data for the __SP__ problem
@@ -27,6 +30,13 @@
 ## RUN MODEL
 
 	./run <model_path> [params..]
+
+
+## EXAMPLES FOR mcndp/cg AND mcndp/raw
+
+	time ./run mcndp/cg  < mcndp/data/p33.dat
+
+	time ./run mcndp/raw < mcndp/data/p33.dat
 
 
 
