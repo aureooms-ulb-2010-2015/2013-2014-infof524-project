@@ -69,11 +69,11 @@ $(FILENAME).pdf: $(FILENAME).tex $(STYLESHEET).sty bib/touch.bbl
 
 $(FILENAME).tex: $(TEXFILES)
 	echo "$(ACTION_COLOR)"tex files changed"$(NO_COLOR)"
-	$$ tex build $(TEX) $(FILENAME).tex
+	python3 ~/Bureau/sake/run.py tex build $(TEX) $(FILENAME).tex
 
 $(STYLESHEET).sty: $(STYFILES)
 	echo "$(ACTION_COLOR)"sty files changed"$(NO_COLOR)"
-	$$ sty build $(STY) $(STYLESHEET).sty
+	python3 ~/Bureau/sake/run.py sty build $(STY) $(STYLESHEET).sty
 
 ifeq ($(BIBFILES),)
 bib/touch.bbl: $(BIBFILES)
