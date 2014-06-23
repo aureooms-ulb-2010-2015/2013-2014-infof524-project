@@ -1,0 +1,35 @@
+
+
+\begin{algorithm}
+\caption{Pseudo-code for the Tabu Search algorithm}
+\label{app:alg:tabu}
+\begin{algorithmic}
+\Procedure{PFSP-TABU}{}
+	\State $\pi_b \gets \operatorname{SLACK}() ~\text{or}~ \operatorname{RANDOM}()$\Comment{Initialization}
+	\State $\tau_j \gets 0, \forall j$\Comment{Tabu vector}
+	\State $k \gets 0$\Comment{Step counter}
+	\While{termination criterion not satisfied}
+
+		\State $L \gets ~\text{list of non-tabu moves}$\Comment{Sample phase}
+		\State $r \gets \operatorname{RANDINT}(r_{min}, r_{max})$
+		\State $R \gets ~\text{random sample of}~ L ~\text{of size}~ r$
+		\State $\pi \gets ~\text{best of}~ R$
+
+
+		\State $\tau_{j(\pi, \pi')} \gets k + \operatorname{RANDINT}(t_{min}, t_{max}) ~\text{or}~ t_{2nd} $ \Comment{Update TABU}
+
+		\If{$\operatorname{O}(\pi) < \operatorname{O}(\pi_b)$}\Comment{Check new best}
+			\State $\tau_j \gets 0, \forall j$ \Comment{Reset TABU vector}
+			\State $\pi_b \gets \pi$
+		\ElsIf{No improvement since $\mathcal{R}$ steps}
+			\State $\tau_j \gets 0, \forall j$ \Comment{Reset TABU vector}
+			\State $\pi \gets \pi_b$
+		\EndIf
+
+		\State $k \gets k + 1$ \Comment{Increment step counter}
+
+	\EndWhile
+	\State \textbf{return} $\pi_b$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}

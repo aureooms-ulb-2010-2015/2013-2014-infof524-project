@@ -1,0 +1,66 @@
+\section{Observations}
+
+The set of parameters used for the Iterated Greedy algorithm is reported in \ref{obs:table/ig-tune}. 
+The set of parameters used for the Tabu Search algorithm is reported in \ref{obs:table/tabu-tune}. These set of parameters have been chosen following the results of \ref{tune}.
+
+
+\begin{table}[H]
+\begin{center}
+\caption{Parameters for the IG algorithm}
+\label{obs:table/ig-tune}
+\begin{tabular}{|r|c|}
+\hline
+\verb!--init! & slack\\
+\hline
+\hline
+\verb!--temperature-d! & 0.8\\
+\hline
+\verb!--temperature-p! & 0.8\\
+\hline
+\hline
+\verb!--sample-size-f! & 0.13\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}[H]
+\begin{center}
+\caption{Parameters for the TABU algorithm}
+\label{obs:table/tabu-tune}
+\begin{tabular}{|r|c|}
+\hline
+\verb!--init! & random\\
+\hline
+\verb!--neighborhood! & insert\\
+\hline
+\hline
+\verb!--sample-size-f-min! & 0.698\\
+\hline
+\verb!--sample-size-f-max! & 0.698\\
+\hline
+\hline
+\verb!--tabu-tenure-f-min! & 0.1444\\
+\hline
+\verb!--tabu-tenure-f-max! & 0.8854\\
+\hline
+\verb!--tabu-tenure-f-2nd! & 0.4268\\
+\hline
+\hline
+\verb!--restart-wait-f! & 468.73\\
+\hline
+\verb!--phase-repartition! & 0.7255\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\emph{For data see \ref{app:rel},  \ref{app:corr}, \ref{app:stat}, \ref{app:qrd}.}
+
+
+According to \cite{santostabu} \emph{TS} should be better than \emph{IG}.
+However all the data and tests tends to point \emph{IG} as the best of the two candidates. This is probably due to the fact that the automatic tuning of \emph{TS} gave parameters that were divergent from the ones given in \cite{santostabu}. Next time I will first test what is proposed in papers before applying any automated parameter finding method or even try to guess them myself.
+
+That being said, \emph{IG} is performant and robust whereas \emph{TS} is still better than the local search methods implemented in the first implementation exercice.
