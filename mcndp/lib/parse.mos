@@ -30,7 +30,7 @@ fopen(DATA, F_INPUT)
 
 	fskipline("\n")                             ! skip blank lines
 	readln(N, M, K)                             ! read N, M and K
-	writeln(N, " ", M, " ", K)
+	!writeln(N, " ", M, " ", K)
 
 	Nr := 1..N                                  ! assign N range
 	Kr := 1..K                                  ! assign K range
@@ -49,7 +49,7 @@ fopen(DATA, F_INPUT)
 		F(_i, _j) := _f
 		U(_i, _j) := _u
 		create(Y(_i, _j))
-		writeln(_j, " ", _i, " ", _f, " ", _u, " ", _n)
+		!writeln(_j, " ", _i, " ", _f, " ", _u, " ", _n)
 
 		repeat                                      ! for each product
 			fskipline("\n")                             ! skip blank lines
@@ -57,7 +57,7 @@ fopen(DATA, F_INPUT)
 			C(_k, _i, _j) := _c
 			B(_k, _i, _j) := _b
 			create(X(_k, _i, _j))
-			writeln(_k, " ", _c, " ", _b)
+			!writeln(_k, " ", _c, " ", _b)
 			_n -= 1
 		until _n = 0
 
@@ -72,7 +72,7 @@ fopen(DATA, F_INPUT)
 		end-if
 
 		D(_k, _i) := _d
-		writeln(_k, " ", _i, " ", _d)
+		!writeln(_k, " ", _i, " ", _d)
 	until 1 = 0
 
 

@@ -54,12 +54,16 @@ model "mcndp/raw"
 
 	(! solve !)
 
+	writeln("<solve>")
 	minimize(TotalCost)
+	writeln("</solve>")
 
 	
 	(! output !)
 
+	writeln("<out>")
 	include "mcndp/lib/output.mos"
+	writeln("</out>")
 
 
 end-model

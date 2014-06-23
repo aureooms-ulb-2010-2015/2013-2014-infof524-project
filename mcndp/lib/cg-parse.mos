@@ -1,4 +1,4 @@
-writeln("<parse-begin>")
+!writeln("<parse>")
 
 
 (! variables !)
@@ -38,7 +38,7 @@ fopen(DATA, F_INPUT)
 
 	fskipline("\n")                             ! skip blank lines
 	readln(N, M, K)                             ! read N, M and K
-	writeln(N, " ", M, " ", K)
+	!writeln(N, " ", M, " ", K)
 
 	Nr := 1..N                                  ! assign N range
 	Wr := 1..M                                  ! assign W range (without dummy edges)
@@ -62,7 +62,7 @@ fopen(DATA, F_INPUT)
 		create(Y(_m))
 		I(_m) := _i
 		J(_m) := _j
-		writeln("E#", _m, " > (", _j, " --> ", _i, ") f[", _f, "] u[", _u, "] n[", _n, "]")
+		!writeln("E#", _m, " > (", _j, " --> ", _i, ") f[", _f, "] u[", _u, "] n[", _n, "]")
 
 		repeat                                      ! for each product
 			fskipline("\n")                             ! skip blank lines
@@ -70,7 +70,7 @@ fopen(DATA, F_INPUT)
 			C(_k, _m) := _c
 			B(_k, _m) := _b
 			create(X(_k, _m))
-			writeln("C k[", _k, "] c[", _c, "] b[", _b, "]")
+			!writeln("C k[", _k, "] c[", _c, "] b[", _b, "]")
 			_n -= 1
 		until _n = 0
 
@@ -102,10 +102,10 @@ fopen(DATA, F_INPUT)
 			T(_k) := _i
 		end-if
 
-		writeln("S/D k[", _k, "] i[", _i, "] d[", _d, "]")
+		!writeln("S/D k[", _k, "] i[", _i, "] d[", _d, "]")
 	until 1 = 0
 
 
 fclose(F_INPUT)
 
-writeln("<parse-end>")
+!writeln("</parse>")

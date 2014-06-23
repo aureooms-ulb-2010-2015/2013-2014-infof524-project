@@ -23,7 +23,6 @@ model "mcndp/raw"
 		FLOW  : array(Kr, Pr) of mpvar           ! Flow decision variables
 		EPS   = 1e-6                             ! Zero tolerance
 
-		solFlow   : array(Kr, Pr) of real        ! Solution values for variables 'FLOW'
 		Link      : array(Kr, Mr) of linctr      ! Variable change linking
 		Flow      : array(Kr) of linctr          ! Flow constraints
 		Capacity  : array(Mr) of linctr          ! Capacity constraints
@@ -38,7 +37,7 @@ model "mcndp/raw"
 
 		forall(k in Kr) do
 			create(FLOW(k, l))                   ! Create flow variable
-			FLOW(k,l) is_integer
+			! FLOW(k,l) is_integer
 			DELTA(k, l, M + k) := 1              ! Basic paths only use dummy arcs
 		end-do
 
@@ -89,16 +88,19 @@ model "mcndp/raw"
 
 
 	(! solve !)
-
+		writeln("<solve>")
 		column_gen
 		minimize(TotalCost)
+		writeln("</solve>")
 
 
 
 	
 	(! output !)
 
+	writeln("<out>")
 	include "mcndp/lib/cg-output.mos"
+	writeln("</out>")
 
 
 
@@ -118,14 +120,13 @@ model "mcndp/raw"
 			done              : boolean                      
 
 			reducedCost       : array(Kr, Wr) of real                ! arcs reduced costs
-			dw, zbest, objval : real
-			bas               : basis
+			objval : real
 		end-declarations
 
 
-!		defcut := getparam("XPRS_CUTSTRATEGY") ! Save setting of ‘CUTSTRATEGY’
-!		setparam("XPRS_CUTSTRATEGY", 0)        ! Disable automatic cuts
-!		setparam("XPRS_PRESOLVE", 0)           ! Switch presolve off
+		defcut := getparam("XPRS_CUTSTRATEGY") ! Save setting of ‘CUTSTRATEGY’
+		setparam("XPRS_CUTSTRATEGY", 0)        ! Disable automatic cuts
+		setparam("XPRS_PRESOLVE", 0)           ! Switch presolve off
 		setparam("zerotol", EPS)               ! Set comparison tolerance of Mosel
 
 		forall (k in Kr, m in Wr) create(XI(k, I(m), J(m)))
@@ -134,12 +135,8 @@ model "mcndp/raw"
 
 		while(true) do
 			minimize(XPRS_LIN, TotalCost)
-			!minimize(TotalCost)
-			savebasis(bas)                                               ! Save the current basis
-			objval := getobjval                                          ! Get the objective value
-			forall(k in Kr, p in Pr) solFlow(k, p) := getsol(FLOW(k, p)) ! Get the solution values
- 
-			writeln(" > sol : ", objval, " cost, ", l, " paths per product")
+			objval := getobjval                                           ! Get the objective value
+			writeln(" + sol #", l," : ", objval)
  
 			forall (k in Kr) dualFlow(k) := getdual(Flow(k))
 			forall (m in Wr) dualCapacity(m) := getdual(Capacity(m))
@@ -149,30 +146,30 @@ model "mcndp/raw"
 				GAMMA(k, I(m), J(m)) := reducedCost(k, m)
 			end-do
 
+			write(" > compute sp on reduced costs ")
 			forall (k in Kr) do
-				writeln("compute sp for product #", k)
+				write(".")
 				Z(k) := sp(GAMMA, XI, LAMBDA, Nr, S(k), T(k), k)
-				writeln("found path with value : ", Z(k))
 			end-do
+			writeln
 
 			done := true
 			forall (k in Kr) do
-				writeln(Z(k), " ", dualFlow(k), " ", Z(k) < dualFlow(k))
-				if (Z(k) < dualFlow(k)) then
+				if Z(k) < dualFlow(k) then
 					done := false
 					break
 				end-if
 			end-do
 
 			if done = true then
-				writeln("no profitable column found.\n")
+				writeln(" - no profitable column found")
 				break
 			else
 				l += 1                     ! inc. path index
 
 				forall(k in Kr) do
 					create(FLOW(k, l))                          ! Create flow variable
-					FLOW(k,l) is_integer
+					!FLOW(k,l) is_integer
 
 					forall(m in Wr) do
 						DELTA(k, l, m) := LAMBDA(k, I(m), J(m)) ! Copy path arc list
@@ -184,25 +181,24 @@ model "mcndp/raw"
 						(! upgrade constraints !)
 			
 						Link(k, m)  += FLOW(k, l) * DELTA(k, l, m)
-						Flow(k)     += FLOW(k, l)
 						Capacity(m) += FLOW(k, l) * DELTA(k, l, m)
 						Bound(k, m) += FLOW(k, l) * DELTA(k, l, m)
 
 					end-do
+
+					(! upgrade flow constraints !)
+					
+					Flow(k) += FLOW(k, l)
+
 				end-do
-
-
-				loadprob(TotalCost)               ! Reload the problem
-				loadbasis(bas)                    ! Load the saved basis
 
 			end-if
 
-			writeln
 		end-do
 
 
-!		setparam("XPRS_CUTSTRATEGY", defcut) ! Enable automatic cuts
-!		setparam("XPRS_PRESOLVE", 1)         ! Switch presolve on
+		setparam("XPRS_CUTSTRATEGY", defcut) ! Enable automatic cuts
+		setparam("XPRS_PRESOLVE", 1)         ! Switch presolve on
 			
 			
 	end-procedure
