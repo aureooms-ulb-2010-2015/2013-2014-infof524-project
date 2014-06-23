@@ -9,7 +9,7 @@ declarations
 	_k, _c, _b, _d, _m: integer
 
 	N, M, K : integer                    ! instance size variables
-	Nr, Kr, Mr : range                   ! instance size ranges
+	Nr, Kr, Mr, Wr : range               ! instance size ranges
 
 	F : array(Mr) of integer             ! fixed cost of edges
 	Y : array(Mr) of mpvar               ! decision variables for edges
@@ -23,6 +23,9 @@ declarations
 	D : array(Kr) of integer             ! supply / demand variables
 	S : array(Kr) of integer             ! source list
 	T : array(Kr) of integer             ! target list
+
+	I : array(Wr) of integer             ! from endpoint list
+	J : array(Wr) of integer             !   to endpoint list
 
 end-declarations
 
@@ -38,6 +41,7 @@ fopen(DATA, F_INPUT)
 	writeln(N, " ", M, " ", K)
 
 	Nr := 1..N                                  ! assign N range
+	Wr := 1..M                                  ! assign W range (without dummy edges)
 	Mr := 1..M+K                                ! assign M range (including dummy edges)
 	Kr := 1..K                                  ! assign K range
 
@@ -55,6 +59,8 @@ fopen(DATA, F_INPUT)
 		F(_m) := _f
 		U(_m) := _u
 		create(Y(_m))
+		I(_m) := _i
+		J(_m) := _j
 		writeln("E#", _m, " > (", _j, " --> ", _i, ") f[", _f, "] u[", _u, "] n[", _n, "]")
 
 		repeat                                      ! for each product
@@ -74,6 +80,8 @@ fopen(DATA, F_INPUT)
 		fskipline("\n")                             ! skip blank lines
 		readln(_k, _i, _d)                          ! read k, i, d^k_i
 
+		_m := M + _k
+
 		if getparam("nbread") = 0 then break        ! EOF
 		end-if
 
@@ -89,7 +97,6 @@ fopen(DATA, F_INPUT)
 
 			U(_m) := _d
 			B(_k, _m) := _d
-			_m += 1
 		else                                        ! target node
 			T(_k) := _i
 		end-if

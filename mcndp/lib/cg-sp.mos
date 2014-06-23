@@ -1,0 +1,63 @@
+declarations
+	ShortestPath : mpproblem
+
+end-declarations
+
+function sp (
+	C : array(range, range, range) of real,
+	X : array(range, range, range) of mpvar,
+	Y : array(range, range, range) of integer,
+	Nr: range,
+	s : integer,
+	t : integer,
+	k : integer) : real
+
+
+	with ShortestPath do
+
+
+		(! objective !)
+			Distance := 
+			sum ( i in Nr, j in Nr | exists(X(k,i,j)) )
+			C(k,i,j) * X(k,i,j)
+		
+		(! constraints !)
+
+		! Flow
+
+			forall(i in Nr | i <> s and i <> t)
+			sum ( j in Nr | exists(X(k,i,j)) ) X(k,i,j) -
+			sum ( j in Nr | exists(X(k,j,i)) ) X(k,j,i) =
+			0
+
+			sum ( j in Nr | exists(X(k,s,j)) ) X(k,s,j) -
+			sum ( j in Nr | exists(X(k,j,s)) ) X(k,j,s) =
+			1
+
+			sum ( j in Nr | exists(X(k,t,j)) ) X(k,t,j) -
+			sum ( j in Nr | exists(X(k,j,t)) ) X(k,j,t) =
+			-1
+
+
+		! Choice
+
+			forall (i in Nr, j in Nr | exists(X(k,i,j)))
+			X(k,i,j) is_binary
+
+
+
+		(! solve !)
+
+			minimize(Distance)
+
+		
+		(! output !)
+
+			forall (i in Nr, j in Nr | exists(X(k,i,j)))
+			Y(k,i,j) := round(getsol(X(k,i,j)))
+
+			returned := getobjval
+
+	end-do
+
+end-function

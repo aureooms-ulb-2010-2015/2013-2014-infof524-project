@@ -13,8 +13,8 @@ model "mcndp/raw"
 	forward procedure column_gen
 
 
-	include "mcndp/lib/parse-cg.mos"
-	include "sp/lib/sp.mos"
+	include "mcndp/lib/cg-parse.mos"
+	include "mcndp/lib/cg-sp.mos"
 
 	declarations
 		l     : integer                          ! # of generated paths per product
@@ -24,6 +24,7 @@ model "mcndp/raw"
 		EPS   = 1e-6                             ! Zero tolerance
 
 		solFlow   : array(Kr, Pr) of real        ! Solution values for variables 'FLOW'
+		Link      : array(Kr, Mr) of linctr      ! Variable change linking
 		Flow      : array(Kr) of linctr          ! Flow constraints
 		Capacity  : array(Mr) of linctr          ! Capacity constraints
 		Bound     : array(Kr, Mr) of linctr      ! Bound constraints
@@ -37,6 +38,7 @@ model "mcndp/raw"
 
 		forall(k in Kr) do
 			create(FLOW(k, l))                   ! Create flow variable
+			FLOW(k,l) is_integer
 			DELTA(k, l, M + k) := 1              ! Basic paths only use dummy arcs
 		end-do
 
@@ -52,8 +54,8 @@ model "mcndp/raw"
 
 	! Link
 
-		forall(m in Mr, k in Kr | exists(X(k, m)), p in Pr)
-		X(k, m) = DELTA(k, p, m) * FLOW(k, p)
+		forall(m in Mr, k in Kr | exists(X(k, m)))
+		Link(k, m) := sum (p in Pr) DELTA(k, p, m) * FLOW(k, p) = X(k, m)
 
 
 	! Flows
@@ -89,13 +91,14 @@ model "mcndp/raw"
 	(! solve !)
 
 		column_gen
+		minimize(TotalCost)
 
 
 
 	
 	(! output !)
 
-	include "mcndp/lib/output-cg.mos"
+	include "mcndp/lib/cg-output.mos"
 
 
 
@@ -104,8 +107,17 @@ model "mcndp/raw"
 	procedure column_gen
 
  		declarations
- 			!dualdem           : array(WIDTHS) of real
- 			!xbest             : array(WIDTHS) of integer
+			dualFlow          : array(Kr) of real                    ! Flow constraints dual variables
+			dualCapacity      : array(Wr) of real                    ! Capacity constraints dual variables
+			dualBound         : array(Kr, Wr) of real                ! Bound constraints dual variables
+
+ 			GAMMA             : array(Kr, Nr, Nr) of real            ! sp costs
+ 			LAMBDA            : array(Kr, Nr, Nr) of integer         ! sp output
+ 			XI                : dynamic array(Kr, Nr, Nr) of mpvar   ! sp coefficients
+ 			Z                 : array(Kr) of real                    ! sp solutions
+ 			done              : boolean                      
+
+ 			reducedCost       : array(Kr, Wr) of real                ! arcs reduced costs
  			dw, zbest, objval : real
  			bas               : basis
  		end-declarations
@@ -115,57 +127,76 @@ model "mcndp/raw"
  		setparam("XPRS_CUTSTRATEGY", 0)        ! Disable automatic cuts
  		setparam("XPRS_PRESOLVE", 0)           ! Switch presolve off
  		setparam("zerotol", EPS)               ! Set comparison tolerance of Mosel
-! 
-! 		npatt := NWIDTHS
-! 		npass := 1
-! 
- 		!while(true) do
+
+ 		forall (k in Kr, m in Wr) create(XI(k, I(m), J(m)))
+
+ 		while(true) do
 			minimize(XPRS_LIN, TotalCost)
  			savebasis(bas)                                               ! Save the current basis
  			objval := getobjval                                          ! Get the objective value
  			forall(k in Kr, p in Pr) solFlow(k, p) := getsol(FLOW(k, p)) ! Get the solution values
-! 
-! 			writeln("sol: ", objval, " rolls, ", getsize(RP), " patterns")
-! 
-! 			forall (i in WIDTHS) dualdem(i) := getdual(Dem(i))
-! 			                                                 ! Solve a knapsack Problem
-! 			zbest:= knapsack(dualdem, WIDTH, MAXWIDTH, DEMAND, xbest, npass) - 1.0
-! 			write("#", npass, ": ")
-! 			if zbest = 0 then
-! 				writeln("no profitable column found.\n")
-! 				break
-! 			else
-! 				show_new_pat(zbest, xbest) ! Print the new pattern
-! 				npatt += 1
-! 				create(use(npatt))         ! Create a new var. for this pattern
-! 				use(npatt) is_integer
-! 
-! 				MinRolls += use(npatt)     ! Add new var. to the objective
-! 
-! 				dw := 0
-! 
-! 				forall(i in WIDTHS)
-! 					if xbest(i) > 0 then
-! 						Dem(i) += xbest(i)*use(npatt)           ! Add new var. to demand constr.s
-! 						dw := maxlist(dw, ceil(DEMAND(i)/xbest(i)))
-! 					end-if
-! 
-! 				use(npatt) <= dw                 ! Set upper bound on the new var.
-! 
-! 
-! 				loadprob(MinRolls)               ! Reload the problem
-! 				loadbasis(bas)                   ! Load the saved basis
-! 
-! 			end-if
-! 			npass += 1
-! 
-! 			writeln("")
-		!end-do
+ 
+ 			writeln(" > sol : ", objval, " cost, ", l, " paths per product")
+ 
+ 			forall (k in Kr) dualFlow(k) := getdual(Flow(k))
+ 			forall (m in Wr) dualCapacity(m) := getdual(Capacity(m))
+ 			forall (k in Kr, m in Wr) dualBound(k, m) := getdual(Bound(k, m))
+ 			forall (k in Kr, m in Wr) do
+ 				reducedCost(k, m)    := C(k, m) - dualCapacity(m) - dualBound(k, m)
+ 				GAMMA(k, I(m), J(m)) := reducedCost(k, m)
+ 			end-do
 
-!		writeln("Solution after column generation: ", objval, " rolls, ", getsize(RP), " patterns")
-!		write("    Rolls per pattern: ")
-!		forall(i in RP) write(soluse(i),", ")
-!		writeln
+ 			forall (k in Kr) do
+ 				writeln("compute sp for product #", k)
+ 				Z(k) := sp(GAMMA, XI, LAMBDA, Nr, S(k), T(k), k)
+ 				writeln("found path with value : ", Z(k))
+ 			end-do
+
+ 			done := true
+ 			forall (k in Kr) do
+ 				if (Z(k) < dualFlow(k)) then
+ 					done := false
+ 					break
+ 				end-if
+ 			end-do
+
+ 			if done = true then
+ 				writeln("no profitable column found.\n")
+ 				break
+ 			else
+ 				l += 1                     ! inc. path index
+
+				forall(k in Kr) do
+					create(FLOW(k, l))                          ! Create flow variable
+					FLOW(k,l) is_integer
+
+					forall(m in Wr) do
+						DELTA(k, l, m) := LAMBDA(k, I(m), J(m)) ! Copy path arc list
+
+						(! upgrade objective !)
+
+						TotalCost += C(k, m) * DELTA(k, l, m) * FLOW(k, l)
+							
+						(! upgrade constraints !)
+			
+						Link(k, m)  += FLOW(k, l) * DELTA(k, l, m)
+						Flow(k)     += FLOW(k, l)
+						Capacity(m) += FLOW(k, l) * DELTA(k, l, m)
+						Bound(k, m) += FLOW(k, l) * DELTA(k, l, m)
+
+					end-do
+				end-do
+
+
+! 				loadprob(TotalCost)               ! Reload the problem
+! 				loadbasis(bas)                    ! Load the saved basis
+
+ 			end-if
+ 
+ 			writeln
+		end-do
+
+
 		setparam("XPRS_CUTSTRATEGY", defcut) ! Enable automatic cuts
 		setparam("XPRS_PRESOLVE", 1)         ! Switch presolve on
 			
