@@ -1,0 +1,103 @@
+writeln("<parse-begin>")
+
+
+(! variables !)
+
+declarations
+
+	_j, _i, _f, _u, _n : integer         ! temporary variables
+	_k, _c, _b, _d, _m: integer
+
+	N, M, K : integer                    ! instance size variables
+	Nr, Kr, Mr : range                   ! instance size ranges
+
+	F : array(Mr) of integer             ! fixed cost of edges
+	Y : array(Mr) of mpvar               ! decision variables for edges
+
+	C : array(Kr, Mr) of integer         ! flow variable costs
+	X : array(Kr, Mr) of mpvar           ! decision variables for flows
+
+	U : array(Mr) of integer             ! capacity of edges
+	B : array(Kr, Mr) of integer         ! upper bound for flow of product k on edge (i,j)
+
+	D : array(Kr) of integer             ! supply / demand variables
+	S : array(Kr) of integer             ! source list
+	T : array(Kr) of integer             ! target list
+
+end-declarations
+
+
+(! data !)
+
+fopen(DATA, F_INPUT)
+
+	(! parse instance size !)
+
+	fskipline("\n")                             ! skip blank lines
+	readln(N, M, K)                             ! read N, M and K
+	writeln(N, " ", M, " ", K)
+
+	Nr := 1..N                                  ! assign N range
+	Mr := 1..M+K                                ! assign M range (including dummy edges)
+	Kr := 1..K                                  ! assign K range
+
+	! /!\ left in comments because seemed to add variables
+	!     without constraints
+	! finalize(Nr)                                ! finalize array size
+	! finalize(Mr)                                ! idem
+	! finalize(Kr)                                ! idem
+
+	_m := 1                                     ! init edge counter
+
+	repeat                                      ! for each edge
+		fskipline("\n")                             ! skip blank lines
+		readln(_j, _i, _f, _u, _n)                  ! read j, i, f_{i,j}, u_{i,j}, n
+		F(_m) := _f
+		U(_m) := _u
+		create(Y(_m))
+		writeln("E#", _m, " > (", _j, " --> ", _i, ") f[", _f, "] u[", _u, "] n[", _n, "]")
+
+		repeat                                      ! for each product
+			fskipline("\n")                             ! skip blank lines
+			readln(_k, _c, _b)                          ! read k, c^k_{i,j}, b^k_{i,j}
+			C(_k, _m) := _c
+			B(_k, _m) := _b
+			create(X(_k, _m))
+			writeln("C k[", _k, "] c[", _c, "] b[", _b, "]")
+			_n -= 1
+		until _n = 0
+
+		_m += 1
+	until _m = M + 1
+
+	repeat                                      ! for each supply / demand constraint
+		fskipline("\n")                             ! skip blank lines
+		readln(_k, _i, _d)                          ! read k, i, d^k_i
+
+		if getparam("nbread") = 0 then break        ! EOF
+		end-if
+
+		if (_d > 0) then                            ! source node
+			D(_k) := _d
+			S(_k) := _i
+
+			create(Y(_m))
+			create(X(_k, _m))
+
+			F(_m) := sum(m in 1..M) F(m)            ! dummy edge fixed cost
+			C(_k, _m) := sum(m in 1..M) C(_k, m)    ! dummy edge variable cost
+
+			U(_m) := _d
+			B(_k, _m) := _d
+			_m += 1
+		else                                        ! target node
+			T(_k) := _i
+		end-if
+
+		writeln("S/D k[", _k, "] i[", _i, "] d[", _d, "]")
+	until 1 = 0
+
+
+fclose(F_INPUT)
+
+writeln("<parse-end>")
