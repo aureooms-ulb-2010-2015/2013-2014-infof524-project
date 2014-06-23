@@ -28,6 +28,8 @@ With those reduced cost we can search for the shortest path for each product $k$
 
 \subsection{Termination criterion}
 
+The way we searched for new path to be generated, we keep generating them while the reduced cost $\gamma^k_{ij}$ are strictly lower than the dual variable linked to the constraint of flow (minus an $\epsilon$ to avoid approximation errors). So we will only stop if we cannot generate such a path. Then we will be able to keep the generated paths which are far less numerous than all the possible paths, and run the algorithm with the integer constraint without taking too much time.
+
 \section{Integer solution}
 
 \section{Comparisons}
