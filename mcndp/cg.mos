@@ -37,7 +37,7 @@ model "mcndp/raw"
 
 		forall(k in Kr) do
 			create(FLOW(k, l))                   ! Create flow variable
-			! FLOW(k,l) is_integer
+			FLOW(k, l) is_integer
 			DELTA(k, l, M + k) := 1              ! Basic paths only use dummy arcs
 		end-do
 
@@ -119,8 +119,6 @@ model "mcndp/raw"
 			Z                 : array(Kr) of real                    ! sp solutions
 			done              : boolean                      
 
-			reducedCost       : array(Kr, Wr) of real                ! arcs reduced costs
-			objval : real
 		end-declarations
 
 
@@ -134,16 +132,15 @@ model "mcndp/raw"
 		initsp(GAMMA, XI, LAMBDA, Nr, S, T, Kr)
 
 		while(true) do
-			minimize(XPRS_LIN, TotalCost)
-			objval := getobjval                                           ! Get the objective value
-			writeln(" + sol #", l," : ", objval)
+			minimize(XPRS_LIN, TotalCost)                                     ! solve lin. relax.
+			writeln(" + sol #", l," : ", getobjval)
  
-			forall (k in Kr) dualFlow(k) := getdual(Flow(k))
-			forall (m in Wr) dualCapacity(m) := getdual(Capacity(m))
-			forall (k in Kr, m in Wr) dualBound(k, m) := getdual(Bound(k, m))
-			forall (k in Kr, m in Wr) do
-				reducedCost(k, m)    := C(k, m) - dualCapacity(m) - dualBound(k, m)
-				GAMMA(k, I(m), J(m)) := reducedCost(k, m)
+			forall (k in Kr) dualFlow(k) := getdual(Flow(k))                  ! get dual flow var.
+			forall (m in Wr) dualCapacity(m) := getdual(Capacity(m))          ! get dual cap. var.
+			forall (k in Kr, m in Wr) dualBound(k, m) := getdual(Bound(k, m)) ! get dual bound var.
+
+			forall (k in Kr, m in Wr) do                                      ! comp. reduced costs
+				GAMMA(k, I(m), J(m)) := C(k, m) - dualCapacity(m) - dualBound(k, m)
 			end-do
 
 			write(" > compute sp on reduced costs ")
@@ -155,7 +152,7 @@ model "mcndp/raw"
 
 			done := true
 			forall (k in Kr) do
-				if Z(k) < dualFlow(k) then
+				if Z(k) < dualFlow(k) then ! termination criterion
 					done := false
 					break
 				end-if
@@ -168,27 +165,21 @@ model "mcndp/raw"
 				l += 1                     ! inc. path index
 
 				forall(k in Kr) do
-					create(FLOW(k, l))                          ! Create flow variable
-					!FLOW(k,l) is_integer
+					create(FLOW(k, l))                          ! add column
+					FLOW(k, l) is_integer
 
 					forall(m in Wr) do
-						DELTA(k, l, m) := LAMBDA(k, I(m), J(m)) ! Copy path arc list
+						DELTA(k, l, m) := LAMBDA(k, I(m), J(m))              ! copy path arc list
 
-						(! upgrade objective !)
-
-						TotalCost   += FLOW(k, l) * DELTA(k, l, m) * C(k, m)
-							
-						(! upgrade constraints !)
+						TotalCost   += FLOW(k, l) * DELTA(k, l, m) * C(k, m) ! upgrade objective
 			
-						Link(k, m)  += FLOW(k, l) * DELTA(k, l, m)
-						Capacity(m) += FLOW(k, l) * DELTA(k, l, m)
-						Bound(k, m) += FLOW(k, l) * DELTA(k, l, m)
+						Link(k, m)  += FLOW(k, l) * DELTA(k, l, m)           ! upgrade link constraints
+						Capacity(m) += FLOW(k, l) * DELTA(k, l, m)           ! upgrade capacity constraints
+						Bound(k, m) += FLOW(k, l) * DELTA(k, l, m)           ! upgrade bound constraints
 
 					end-do
-
-					(! upgrade flow constraints !)
 					
-					Flow(k) += FLOW(k, l)
+					Flow(k) += FLOW(k, l) ! upgrade flow constraints
 
 				end-do
 
