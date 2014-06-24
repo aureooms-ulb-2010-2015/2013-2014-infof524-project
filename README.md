@@ -5,7 +5,7 @@
 	- *cg*  : column generation approach
 	- *raw* : raw approach
 
-- *pdf*   : contains the assignment sheet, the __Mosel User Guide__ and papers on the subject of the  __MCNDP__ problem
+- *pdf*   : contains the assignment sheet, the report, the __Mosel User Guide__ and papers on the subject of the  __MCNDP__ problem
 
 - *sp*    : contains mosel models and data for the __SP__ problem
 
