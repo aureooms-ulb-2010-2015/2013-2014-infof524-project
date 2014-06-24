@@ -1,19 +1,40 @@
 #!/usr/bin/env python3
 
 import sys, os, subprocess
+from time import time
 
 
-def main(inp, out):
+def main(inp, out, *alg):
 
-	alg = ['mcndp/raw', 'mcndp/cg']
+	for a in alg:
+		algpath = os.path.join(out, a)
+		if not os.path.exists(algpath) : os.makedirs(algpath)
 
 	for element in sorted(os.listdir(inp)):
-		inppath = os.path.abspath(os.path.join(inp, element))
+		inppath = os.path.join(inp, element)
 		if os.path.isfile(inppath):
 			for a in alg:
-				outpath = os.path.abspath(os.path.join(out, a, element))
-				os.makedirs(outpath)
-				subprocess.call(['./run', a, '<', inppath, '>', outpath])
+
+				outpath = os.path.join(out, a, element)
+
+				script = ['./run', a]
+				cmd = script + ['<', inppath, '>', outpath]
+
+				print(' '.join(cmd))
+
+				inpfile = open(inppath, 'r')
+				outfile = open(outpath, 'w')
+
+				start = time()
+
+				subprocess.call(script, stdin = inpfile, stdout = outfile)
+
+				runtime = (time() - start) * 1e6
+
+				outfile.write('<time>%d</time>' % runtime)
+
+				inpfile.close()
+				outfile.close()
 
 
 if __name__ == '__main__':
