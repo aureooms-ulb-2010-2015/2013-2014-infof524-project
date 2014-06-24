@@ -39,6 +39,11 @@
 	time ./run mcndp/raw < mcndp/data/p33.dat
 
 
+## BENCHMARK
+
+	./bench/run <inp> <out> <*alg>
+
+	./bench/run mcndp/data/ bench/data/ mcndp/raw mcndp/cg
 
 # DATA
 
