@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+
+import sys, os, re
+
+
+def main(inp, floatp, alg1, alg2):
+
+	size = tuple(2 * [int(floatp)])
+
+	fmt = '%%s & %%d & %%d & %%.%df & %%.%df \\\\' % size
+
+	print('\\begin{longtable}{|l|r|r|d{%d}|d{%d}|}' % size)
+	print('\\caption{value and computation time of %s plus relative \\%% deviation and speedup for %s on several instances}' % (alg1, alg2))
+	print('\\label{comparison/table} \\\\')
+	print('\\hline')
+	print('{} &  \multicolumn{2}{c|}{{\\it %s}} & \multicolumn{2}{c|}{{\\it %s}} \\\\' % (alg1, alg2))
+	print('\\hline')
+	print('\\textbf{instance} & \\textbf{z} & \\textbf{t (ms)} & \\textbf{\\% dev} & \\textbf{speedup} \\\\')
+	print('\\hline')
+
+	alg1path = os.path.join(inp, alg1)
+
+	revalue = re.compile('TotalCost: (\d+)')
+	retime = re.compile('<time>(\d+)</time>')
+
+	for element in sorted(os.listdir(alg1path)):
+		alg1file = os.path.join(inp, alg1, element)
+		alg2file = os.path.join(inp, alg2, element)
+
+		if os.path.isfile(alg1file) and os.path.isfile(alg2file):
+			with open(alg1file) as f:
+				data = f.read()
+				alg1val = int(re.search(revalue, data).group(1))
+				alg1time = int(re.search(retime, data).group(1))
+
+			with open(alg2file) as f:
+				data = f.read()
+				alg2val = int(re.search(revalue, data).group(1))
+				alg2time = int(re.search(retime, data).group(1))
+
+				alg2valdev = float(alg2val - alg1val) / float(alg1val) * 100
+				speedup = float(alg1time) / float(alg2time)
+
+
+
+		print(fmt % (element, alg1val, alg1time / 1000, alg2valdev, speedup))
+		print('\\hline')
+
+	print('\\end{longtable}')
+
+
+if __name__ == '__main__':
+	main(*sys.argv[1:])

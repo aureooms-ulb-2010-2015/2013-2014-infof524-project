@@ -2,14 +2,19 @@
 
 - *mcndp* : contains mosel models and data for the __MCNDP__ problem
 
-	- *cg*  : column generation approach
-	- *raw* : raw approach
+	- *cg*   : column generation approach
+	- *raw*  : raw approach
+	- *data* : data file folder
+		- *easy*  : easy instances
+		- *hard*  : hard instances
+		- *small* : contains a small instance of the __MCNDP__ problem and its network representation to help understanding the *.dat* file format
+
+	- *lib*  : reusable code folder
 
 - *pdf*   : contains the assignment sheet, the report, the __Mosel User Guide__ and papers on the subject of the  __MCNDP__ problem
 
 - *sp*    : contains mosel models and data for the __SP__ problem
 
-- *small* : contains a small instance of the __MCNDP__ problem and its network representation to help understanding the *.dat* file format
 
 - *test*  : __mosel__ examples
 
@@ -18,6 +23,7 @@
 
 - *init*  : quick environment initialization for __mosel__
 - *run* : shortcut for model execution
+
 
 
 # USAGE
@@ -43,7 +49,16 @@
 
 	./bench/run <inp> <out> <*alg>
 
-	./bench/run mcndp/data/ bench/data/ mcndp/raw mcndp/cg
+	./bench/run mcndp/data/easy/ bench/data/ mcndp/raw mcndp/cg
+
+
+## BENCHMARK LATEX TABLES
+
+	./bench/b2l <inp> <precision> <alg1> <alg2>
+
+	./bench/b2l bench/data/ 2 mcndp/raw mcndp/cg
+
+
 
 # DATA
 

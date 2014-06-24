@@ -1,12 +1,12 @@
 \newpage\cleardoublepage\phantomsection
 \section{Introduction}
-Models for network conception appear in a lot of applications like telecommunication, transports and logistic. Those models are often defined via a graph with capacity on its edges. The aim will be to send a flow on this network in order to satisfy the multiples demands.There will be a cost for the opening of an edge and a cost for each unity sent through each edge. This problem is generally called Fixed-Charge Multi-Commodity Capacitated Network Design Problem, and is known to be quite difficult.
+Models for network conception appear in a lot of applications like telecommunication, transports and logistic. Those models are often defined via a graph with capacity on its arcs. The aim will be to send a flow on this network in order to satisfy the multiples demands.There will be a cost for the opening of an arc and a cost for each unity sent through each arc. This problem is generally called Fixed-Charge Multi-Commodity Capacitated Network Design Problem, and is known to be quite difficult.
 
 \section{Formulation}
-Given a directed graph $G=(N,A)$ and a set of products $K$ for which a demand from an origin to a destination must be sent via the network, the aim will be to minimize the cost of transport and installation. For each arc $(i,j) \in A$, the cost per unity for the transport of the porduct $k$ will be $c^k_{ij}$ and the cost for the installation of the arc is noted $f_{ij}$. All costs are supposed positives. For a product $k$, a demande $d^k$ positive has to be transported between the origin $O(k)$ and the destination $D(k)$. Each arc $(i,j) \in A$ has a capacity $u_{ij}$ and we define a maximum bound $b^k_{ij}=min\{d^k,u_{ij}\}$ on the quantity of product $k$ over the arc $(i,j)$. For each node $i \in N$ we define the sets $N^+_i=\{j\in N|(i,j)\in A\}$ and $N^-_i=\{j\in N|(j,i)\in A\}$. We use the variables $x^k_{ij}$ to find the value of each product $k$ that go through the edge $(i,j)$ and the variables $y_{ij}$ to decide if whether the edge is opened or not. The MCNDP consists in activating arcs and deciding which quantity of each product we must send through those arcs such that all demands are satisfied and the total cost is minimized.
+Given a directed graph $G=(N,A)$ and a set of products $K$ for which a demand from an origin to a destination must be sent via the network, the aim will be to minimize the cost of transport and installation. For each arc $(i,j) \in A$, the cost per unity for the transport of the product $k$ will be $c^k_{ij}$ and the cost for the installation of the arc is noted $f_{ij}$. All costs are supposed positives. For a product $k$, a demand $d^k$ positive has to be transported between the origin $O(k)$ and the destination $D(k)$. Each arc $(i,j) \in A$ has a capacity $u_{ij}$ and we define a maximum bound $b^k_{ij}=min\{d^k,u_{ij}\}$ on the quantity of product $k$ over the arc $(i,j)$. For each node $i \in N$ we define the sets $N^+_i=\{j\in N|(i,j)\in A\}$ and $N^-_i=\{j\in N|(j,i)\in A\}$. We use the variables $x^k_{ij}$ to find the value of each product $k$ that go through the arc $(i,j)$ and the variables $y_{ij}$ to decide whether the arc is opened or not. The MCNDP consists in activating arcs and deciding which quantity of each product we must send through those arcs such that all demands are satisfied and the total cost is minimized.
 
 \section{Change of variable}
-In order to use the column generating process, we will change the variable $x^k_{ij}$ over each edge for new variable $f(P)$ indicating which quantity of a product is going through a certain path $P$. Also we will define the cost per unity of a path $c^k (P)$ as the sum of the cost per unity for each edge in this path, but we will keep the deciding variables $y_{ij}$ to say if an edge is opened or not. We write then :
+In order to use the column generation procedure, we will change the variable $x^k_{ij}$ over each arc for new variable $f(P)$ indicating which quantity of a product is going through a certain path $P$. Also we will define the cost per unity of a path $c^k (P)$ as the sum of the cost per unity for each arc in this path, but we will keep the deciding variables $y_{ij}$ to say if an arc is opened or not. We write then :
 
 $$x^k_{ij} = \sum\limits_{P \in \mathcal{P}^k} \delta_{ij} (P) f(P)$$
 
@@ -17,30 +17,57 @@ $$c^k (P) = \sum\limits_{(i,j) \in A} c^k_{ij} \delta_{ij} (P)$$
 
 \subsection{Initial base}
 
-The idea of the generating process is to restrain the search of a solution over a subset of variable, keeping the other at zero. Then adding new variables iteratively if those new variables can help us to get a better solution. We need to start with a first set of path that can satisfy the condition, and we will add new path in order to find new solution with lower cost. For each product $k \in K$ we will create a fake edge going from the origin to the destination. This edge will be the first path that can satisfy the condition. We will give it a opening cost equal to the sum of all the opening cost of the graph, and a cost per unity equal to the sum of all the cost per unity over the graph. In such a way we are certain that using those path will be a problem if we want to minimize the cost. Indeed those cost will be higher than the cost of the worst path in the graph for each product.
+The idea of the generating process is to restrain the search of a solution over a subset of variables, keeping the other at zero. Then adding new variables iteratively if those new variables can help us to get a better solution. We need to start with a first set of path that can satisfy the condition, and we will add new paths in order to find new solutions with lower cost. For each product $k \in K$ we will create a fake arc going from the origin to the destination. This arc will be the first path that can satisfy the condition. We will give it a opening cost equal to the sum of all the opening cost of the graph, and a cost per unity equal to the sum of all the cost per unity over the graph. In such a way we are certain that using those path will be a problem if we want to minimize the cost. Indeed those cost will be higher than the cost of the worst path in the graph for each product.
 
 \subsection{Generation of new variables}
 
-Now that we have a base on which we can solve the problem, we can extract from this solution the dual variables and then compute the reduced cost of each edge. Where $w_{ij}$ is the dual variable corresponding to the constraint of total capacity, and $v^k_{ij}$ is the dual variable corresponding to the constraint of capacity for each product.
+Now that we have a base on which we can solve the problem, we can extract from this solution the dual variables and then compute the reduced cost of each arc. Where $w_{ij}$ is the dual variable corresponding to the constraint of total capacity, and $v^k_{ij}$ is the dual variable corresponding to the constraint of capacity for each product.
 
 $$\gamma^k_{ij}=c^k_{ij}-w_{ij}-v^k_{ij}$$
 
-With those reduced cost we can search for the shortest path for each product $k$ and check if at least one of them is stricly smaller than the dual variable linked to the constraint of the correspondant product $k$. If so, then we can find a better a solution by using the corresponding path, and then we just add the new variable for the flow sent through it.
+With those reduced costs we can search for the shortest path for each product $k$ and check if at least one of them is stricly smaller than the dual variable linked to the flow constraint of the correspondant product $k$. If so, then we can find a better a solution by using the corresponding path, and then we just add the new variable for the flow sent through it.
 
 \subsection{Termination criterion}
 
-The way we searched for new path to be generated, we keep generating them while the reduced cost $\gamma^k_{ij}$ are strictly lower than the dual variable linked to the constraint of flow (minus an $\epsilon$ to avoid approximation errors). So we will only stop if we cannot generate such a path. Then we will be able to keep the generated paths which are far less numerous than all the possible paths, and run the algorithm with the integer constraint without taking too much time.
+Remember the way we searched for new paths to be generated, we keep generating them while the reduced cost $\gamma^k_{ij}$ are strictly lower than the dual variable linked to the constraint of flow (minus an $\epsilon$ to avoid approximation errors). So we will only stop if we cannot generate such a path. Then we will be able to keep the generated paths which are far less numerous than all the possible paths, and run the algorithm with the integer constraint without taking too much time.
 
 \section{Integer solution and comparisons}
 
-Now that we have the solution via the column generating process and with a linear relaxation, we can also keep the base generated and find a solution with the integer constraint. That makes us two methods to compare with the basic one, when we just give the instance to the solver without any method or modification. We can on one side compare the time taken and on the other side the precision with which the value ofthe solution is given.
+Now that we have the solution via the column generation process and with a linear relaxation, we can add the integrality constaints from our main problem and compute a solution using only the generated column. We can now compare this method to the original one. In \ref{comparison/table} such a comparison is given. Note that in order to be completely correct in our observations about the gap introduced by the linearization of the objective function we should also compare solution values obtained when the \emph{raw} algorithm is given the same amount of computation time as the column generation approach.
 
-{\it missing tableau}
+
+
+\begin{longtable}{|l|r|r|d{2}|d{2}|}
+\caption{value and computation time of mcndp/raw plus relative \% deviation and speedup for mcndp/cg on several instances}
+\label{comparison/table} \\
+\hline
+{} &  \multicolumn{2}{c|}{{\it mcndp/raw}} & \multicolumn{2}{c|}{{\it mcndp/cg}} \\
+\hline
+\textbf{instance} & \textbf{z} & \textbf{t (ms)} & \textbf{\% dev} & \textbf{speedup} \\
+\hline
+p33.dat & 495471 & 1848 & 0.35 & 0.71 \\
+\hline
+p34.dat & 678360 & 7410 & 0.02 & 1.60 \\
+\hline
+p35.dat & 481449 & 5074 & 0.24 & 3.04 \\
+\hline
+p36.dat & 599028 & 25005 & 0.79 & 6.60 \\
+\hline
+p41.dat & 447558 & 3486 & 0.17 & 1.30 \\
+\hline
+p42.dat & 570178 & 9601 & 0.41 & 2.30 \\
+\hline
+p43.dat & 430606 & 5494 & 0.13 & 2.40 \\
+\hline
+p44.dat & 533844 & 23791 & 0.63 & 4.34 \\
+\hline
+\end{longtable}
+
+
 
 \section{Additionnal remarks}
 
-Let us remark that even if the constraint of boundary for each product over each edge defined with the $b^k_{ij}=min\{d^k,u_{ij}\}$ are trivialy satisfied, the fact that we add them in the formulation helps to have a better resolution when we take the linear relaxation. Indeed it gives us a better approximation of the convex envelop of the integer solutions.
-
+Let us remark that even if the constraint of boundary for each product over each arc defined with the $b^k_{ij}=min\{d^k,u_{ij}\}$ are trivialy satisfied, the fact that we add them in the formulation helps to have a better resolution when we take the linear relaxation. Indeed it gives us a better approximation of the convex envelop of the integer solutions.
 
 
 
