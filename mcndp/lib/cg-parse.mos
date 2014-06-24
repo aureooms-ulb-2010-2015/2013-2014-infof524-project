@@ -45,8 +45,8 @@ fopen(DATA, F_INPUT)
 	Mr := 1..M+K                                ! assign M range (including dummy edges)
 	Kr := 1..K                                  ! assign K range
 
-	! /!\ left in comments because seemed to add variables
-	!     without constraints
+	! /!\ left in comments because doesn't seem
+	!     to lead to faster execution
 	! finalize(Nr)                                ! finalize array size
 	! finalize(Wr)                                ! idem
 	! finalize(Mr)                                ! idem

@@ -36,8 +36,8 @@ fopen(DATA, F_INPUT)
 	Kr := 1..K                                  ! assign K range
 
 
-	! /!\ left in comments because seemed to add variables
-	!     without constraints
+	! /!\ left in comments because doesn't seem
+	!     to lead to faster execution
 	! finalize(Nr)                                ! finalize array size
 	! finalize(Kr)                                ! idem
 
