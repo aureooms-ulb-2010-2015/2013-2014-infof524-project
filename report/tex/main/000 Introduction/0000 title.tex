@@ -8,33 +8,38 @@ Given a directed graph $G=(N,A)$ and a set of products $K$ for which a demand fr
 \section{Change of variable}
 In order to use the column generating process, we will change the variable $x^k_{ij}$ over each edge for new variable $f(P)$ indicating which quantity of a product is going through a certain path $P$. Also we will define the cost per unity of a path $c^k (P)$ as the sum of the cost per unity for each edge in this path, but we will keep the deciding variables $y_{ij}$ to say if an edge is opened or not. We write then :
 
-$x^k_{ij} = \sum\limits_{P \in \mathcal{P}^k} \delta_{ij} (P) f(P)$
+$$x^k_{ij} = \sum\limits_{P \in \mathcal{P}^k} \delta_{ij} (P) f(P)$$
 
-$c^k (P) = \sum\limits_{(i,j) \in A} c^k_{ij} \delta_{ij} (P)$
+$$c^k (P) = \sum\limits_{(i,j) \in A} c^k_{ij} \delta_{ij} (P)$$
 
 
 \section{Column generation}
 
 \subsection{Initial base}
+
 The idea of the generating process is to restrain the search of a solution over a subset of variable, keeping the other at zero. Then adding new variables iteratively if those new variables can help us to get a better solution. We need to start with a first set of path that can satisfy the condition, and we will add new path in order to find new solution with lower cost. For each product $k \in K$ we will create a fake edge going from the origin to the destination. This edge will be the first path that can satisfy the condition. We will give it a opening cost equal to the sum of all the opening cost of the graph, and a cost per unity equal to the sum of all the cost per unity over the graph. In such a way we are certain that using those path will be a problem if we want to minimize the cost. Indeed those cost will be higher than the cost of the worst path in the graph for each product.
 
-\subsection{Generating process}
+\subsection{Generation of new variables}
 
 Now that we have a base on which we can solve the problem, we can extract from this solution the dual variables and then compute the reduced cost of each edge. Where $w_{ij}$ is the dual variable corresponding to the constraint of total capacity, and $v^k_{ij}$ is the dual variable corresponding to the constraint of capacity for each product.
 
- $\gamma^k_{ij}=c^k_{ij}-w_{ij}-v^k_{ij}$
+$$\gamma^k_{ij}=c^k_{ij}-w_{ij}-v^k_{ij}$$
 
-With those reduced cost we can search for the shortest path for each product $k$ and check if at least one of them is stricly smaller than the dual variable linked to the constraint of the correspondant product $k$. If so, then we can find a better a solution by 
+With those reduced cost we can search for the shortest path for each product $k$ and check if at least one of them is stricly smaller than the dual variable linked to the constraint of the correspondant product $k$. If so, then we can find a better a solution by using the corresponding path, and then we just add the new variable for the flow sent through it.
 
 \subsection{Termination criterion}
 
 The way we searched for new path to be generated, we keep generating them while the reduced cost $\gamma^k_{ij}$ are strictly lower than the dual variable linked to the constraint of flow (minus an $\epsilon$ to avoid approximation errors). So we will only stop if we cannot generate such a path. Then we will be able to keep the generated paths which are far less numerous than all the possible paths, and run the algorithm with the integer constraint without taking too much time.
 
-\section{Integer solution}
+\section{Integer solution and comparisons}
 
-\section{Comparisons}
+Now that we have the solution via the column generating process and with a linear relaxation, we can also keep the base generated and find a solution with the integer constraint. That makes us two methods to compare with the basic one, when we just give the instance to the solver without any method or modification. We can on one side compare the time taken and on the other side the precision with which the value ofthe solution is given.
+
+{\it missing tableau}
+
 \section{Additionnal remarks}
 
+Let us remark that even if the constraint of boundary for each product over each edge defined with the $b^k_{ij}=min\{d^k,u_{ij}\}$ are trivialy satisfied, the fact that we add them in the formulation helps to have a better resolution when we take the linear relaxation. Indeed it gives us a better approximation of the convex envelop of the integer solutions.
 
 
 
@@ -43,6 +48,5 @@ The way we searched for new path to be generated, we keep generating them while 
 
 
 
-Rmq contrainte bkij
 
-Rmq si on utilise ij et pas un seul indice on ne peut pas résoudre si le graphe n'est pas simple
+
