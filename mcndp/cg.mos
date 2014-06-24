@@ -117,7 +117,8 @@ model "mcndp/raw"
 			LAMBDA            : array(Kr, Nr, Nr) of integer         ! sp output
 			XI                : dynamic array(Kr, Nr, Nr) of mpvar   ! sp coefficients
 			Z                 : array(Kr) of real                    ! sp solutions
-			done              : boolean                      
+			done              : boolean 
+			bas               : basis                                ! p. basis
 
 		end-declarations
 
@@ -132,7 +133,8 @@ model "mcndp/raw"
 		initsp(GAMMA, XI, LAMBDA, Nr, S, T, Kr)
 
 		while(true) do
-			minimize(XPRS_LIN, TotalCost)                                     ! solve lin. relax.
+			minimize(XPRS_LIN, TotalCost)                              ! solve lin. relax.
+			savebasis(bas)                                             ! Save current basis for dyn. solv.
 			writeln(" + sol #", l," : ", getobjval)
  
 			forall (k in Kr) dualFlow(k) := getdual(Flow(k))                  ! get dual flow var.
@@ -145,10 +147,9 @@ model "mcndp/raw"
 
 			write(" > compute sp on reduced costs ")
 			forall (k in Kr) do
-				write(".")
 				Z(k) := sp(GAMMA, XI, LAMBDA, Nr, S(k), T(k), k)
 			end-do
-			writeln
+			writeln("✔")
 
 			done := true
 			forall (k in Kr) do
@@ -182,6 +183,9 @@ model "mcndp/raw"
 					Flow(k) += FLOW(k, l) ! upgrade flow constraints
 
 				end-do
+
+				loadprob(TotalCost)  ! Explicit reload to load saved basis
+				loadbasis(bas)       ! Load saved basis to restart from where we stopped earlier
 
 			end-if
 
